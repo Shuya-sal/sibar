@@ -948,30 +948,27 @@
 
         <!-- Komplek & Koordinat (semua role) -->
         <div class="house-subform" id="addComplexSection" style="background:rgba(0,113,227,0.04); border:1px solid rgba(0,113,227,0.15);">
-          <div style="font-size:11px; font-weight:600; text-transform:uppercase; color:#0071e3; letter-spacing:0.04em; margin-bottom:6px;">
+          <div style="font-size:11px; font-weight:600; text-transform:uppercase; color:#0071e3; letter-spacing:0.04em; margin-bottom:8px;">
             📍 Komplek & Lokasi
           </div>
-          <div class="form-group" style="margin-bottom:8px;">
-            <label>Komplek Perumahan</label>
-            <select id="add_complex_id" class="form-control" onchange="onAddComplexChange(this.value)">
-              <!-- Diisi JS dari data -->
-            </select>
+          <!-- Pilihan komplek sebagai radio card visual (hindari native picker iOS) -->
+          <div id="addComplexCards" style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
+            <!-- Diisi JS dari data -->
           </div>
-          <div id="addKoordSection" style="display:none;">
-            <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:4px;">
-              📍 Koordinat GPS titik tugas — bisa diubah bebas sesuai lokasi pos
-            </div>
+          <!-- Koordinat GPS — selalu tampil, bisa diisi bebas -->
+          <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">Koordinat GPS Pos Tugas</div>
+          <div id="addKoordSection">
             <div class="form-grid-2">
               <div class="form-group">
                 <label>Latitude</label>
-                <input type="number" step="0.000001" id="add_lat" class="form-control" placeholder="contoh: -6.208763">
+                <input type="number" step="0.000001" id="add_lat" class="form-control" placeholder="-6.208763">
               </div>
               <div class="form-group">
                 <label>Longitude</label>
-                <input type="number" step="0.000001" id="add_lng" class="form-control" placeholder="contoh: 106.845599">
+                <input type="number" step="0.000001" id="add_lng" class="form-control" placeholder="106.845599">
               </div>
             </div>
-            <div style="font-size:10.5px; color:#0071e3; margin-top:2px;">💡 Terisi otomatis dari komplek — tapi bisa diubah manual</div>
+            <div style="font-size:10.5px; color:#0071e3; margin-top:3px;">💡 Terisi dari komplek — bisa diubah bebas sesuai lokasi nyata</div>
           </div>
         </div>
 
@@ -1077,30 +1074,28 @@
 
         <!-- Komplek & Koordinat -->
         <div class="house-subform" style="background:rgba(0,113,227,0.04); border:1px solid rgba(0,113,227,0.15);">
-          <div style="font-size:11px; font-weight:600; text-transform:uppercase; color:#0071e3; letter-spacing:0.04em; margin-bottom:6px;">
+          <div style="font-size:11px; font-weight:600; text-transform:uppercase; color:#0071e3; letter-spacing:0.04em; margin-bottom:8px;">
             📍 Komplek & Lokasi
           </div>
-          <div class="form-group" style="margin-bottom:8px;">
-            <label>Komplek Perumahan</label>
-            <select id="edit_complex_id" class="form-control">
-              <!-- Diisi JS dari data -->
-            </select>
+          <!-- Pilihan komplek sebagai radio card visual -->
+          <input type="hidden" id="edit_complex_id" value="1">
+          <div id="editComplexCards" style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
+            <!-- Diisi JS dari data -->
           </div>
-          <div id="editKoordSection" style="display:none;">
-            <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:4px;">
-              📍 Koordinat GPS titik tugas — bisa diubah bebas sesuai lokasi pos
-            </div>
+          <!-- Koordinat GPS — selalu tampil -->
+          <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">Koordinat GPS Pos Tugas</div>
+          <div id="editKoordSection">
             <div class="form-grid-2">
               <div class="form-group">
                 <label>Latitude</label>
-                <input type="number" step="0.000001" id="edit_lat" class="form-control" placeholder="contoh: -6.208763">
+                <input type="number" step="0.000001" id="edit_lat" class="form-control" placeholder="-6.208763">
               </div>
               <div class="form-group">
                 <label>Longitude</label>
-                <input type="number" step="0.000001" id="edit_lng" class="form-control" placeholder="contoh: 106.845599">
+                <input type="number" step="0.000001" id="edit_lng" class="form-control" placeholder="106.845599">
               </div>
             </div>
-            <div style="font-size:10.5px; color:#0071e3; margin-top:2px;">💡 Nilai saat ini bisa diubah langsung — tidak perlu sesuai koordinat komplek</div>
+            <div style="font-size:10.5px; color:#0071e3; margin-top:3px;">💡 Bisa diubah bebas — tidak terkunci ke koordinat komplek</div>
           </div>
         </div>
 
@@ -1368,25 +1363,94 @@
   }
 
   // Add Modal
-  // Isi semua dropdown komplek dari data (bukan hardcode)
+  // Isi pilihan komplek sebagai radio card visual (hindari native picker iOS)
   function populateComplexDropdowns() {
     const db = SibarData.load();
     const complexes = db.complexes || [];
-    ['add_complex_id', 'edit_complex_id'].forEach(selId => {
-      const sel = document.getElementById(selId);
-      if (!sel) return;
-      const curVal = sel.value;
-      sel.innerHTML = '';
+
+    [
+      { containerId: 'addComplexCards',  hiddenId: 'add_complex_id',  prefix: 'add_cx_',  onChange: (val) => onAddComplexChange(val) },
+      { containerId: 'editComplexCards', hiddenId: 'edit_complex_id', prefix: 'edit_cx_', onChange: (val) => { document.getElementById('edit_complex_id').value = val; } }
+    ].forEach(({ containerId, hiddenId, prefix, onChange }) => {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const hiddenInput = document.getElementById(hiddenId);
+      const curVal = hiddenInput ? String(hiddenInput.value || '1') : '1';
+
+      container.innerHTML = '';
       complexes.forEach(cx => {
-        const opt = document.createElement('option');
-        opt.value = cx.id;
-        opt.textContent = cx.name;
-        if (String(cx.id) === String(curVal)) opt.selected = true;
-        sel.appendChild(opt);
+        const isSelected = String(cx.id) === curVal;
+        const card = document.createElement('label');
+        card.style.cssText = `
+          display:flex; align-items:center; gap:10px; padding:10px 12px;
+          border-radius:10px; cursor:pointer; transition:all 0.15s;
+          border:1.5px solid ${isSelected ? '#0071e3' : 'rgba(0,0,0,0.1)'};
+          background:${isSelected ? 'rgba(0,113,227,0.06)' : '#fff'};
+        `;
+        card.innerHTML = `
+          <input type="radio" name="${prefix}radio" value="${cx.id}"
+            style="accent-color:#0071e3; width:16px; height:16px; flex-shrink:0;"
+            ${isSelected ? 'checked' : ''}>
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:13px; font-weight:600; color:var(--text-primary);">${cx.name}</div>
+            <div style="font-size:11px; color:var(--text-secondary); margin-top:1px;">
+              ${cx.address || ''} ${cx.latitude ? '· ' + cx.latitude + ', ' + cx.longitude : ''}
+            </div>
+          </div>
+          ${isSelected ? '<span style="color:#0071e3; font-size:16px;">✓</span>' : ''}
+        `;
+        card.querySelector('input').addEventListener('change', function() {
+          if (hiddenInput) hiddenInput.value = this.value;
+          onChange(this.value);
+          // Re-render semua card di container ini untuk update style
+          populateComplexDropdowns();
+        });
+        container.appendChild(card);
       });
-      // Default ke komplek 1 jika tidak ada yang terpilih
-      if (!sel.value && complexes.length) sel.value = complexes[0].id;
+
+      // Tambah opsi "Tambah Komplek Baru" (input teks langsung)
+      const addNewDiv = document.createElement('div');
+      addNewDiv.id = containerId + '_addnew';
+      addNewDiv.style.cssText = 'margin-top:4px;';
+      addNewDiv.innerHTML = `
+        <button type="button"
+          style="font-size:11.5px; color:#0071e3; background:none; border:none; cursor:pointer; padding:4px 0; text-decoration:underline;"
+          onclick="toggleNewComplexInput('${containerId}', '${hiddenId}')">
+          + Komplek lain (ketik nama)
+        </button>
+        <div id="${containerId}_newinput" style="display:none; margin-top:6px;">
+          <input type="text" id="${containerId}_newname" class="form-control"
+            placeholder="Nama komplek baru..." style="margin-bottom:4px;">
+          <div class="form-grid-2" style="margin-top:4px;">
+            <input type="number" step="0.000001" id="${containerId}_newlat" class="form-control" placeholder="Latitude">
+            <input type="number" step="0.000001" id="${containerId}_newlng" class="form-control" placeholder="Longitude">
+          </div>
+          <button type="button" class="btn-secondary" style="margin-top:6px; font-size:12px;"
+            onclick="saveNewComplex('${containerId}', '${hiddenId}')">Gunakan Komplek Ini</button>
+        </div>
+      `;
+      container.appendChild(addNewDiv);
     });
+  }
+
+  function toggleNewComplexInput(containerId, hiddenId) {
+    const inp = document.getElementById(containerId + '_newinput');
+    if (inp) inp.style.display = inp.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function saveNewComplex(containerId, hiddenId) {
+    const name = document.getElementById(containerId + '_newname')?.value?.trim();
+    if (!name) { showToast('Nama komplek wajib diisi', true); return; }
+    const lat  = parseFloat(document.getElementById(containerId + '_newlat')?.value) || null;
+    const lng  = parseFloat(document.getElementById(containerId + '_newlng')?.value) || null;
+    const db   = SIBAR.load();
+    const newId = (db.complexes.reduce((max, c) => Math.max(max, c.id), 0) || 0) + 1;
+    db.complexes.push({ id: newId, code: 'cx-' + newId, name, address: '', latitude: lat, longitude: lng, city: '' });
+    SIBAR.save(db);
+    const hiddenInput = document.getElementById(hiddenId);
+    if (hiddenInput) hiddenInput.value = newId;
+    populateComplexDropdowns();
+    showToast('Komplek "' + name + '" berhasil ditambahkan!');
   }
 
   function openAddModal() {
@@ -1408,7 +1472,6 @@
     });
 
     const houseSec = document.getElementById('wargaHouseSection');
-    const koordSec = document.getElementById('addKoordSection');
     const isWarga = role === 'warga';
     const isFieldOfficer = ['satpam_siang','satpam_malam','sampah'].includes(role);
 
@@ -1416,24 +1479,25 @@
     document.getElementById('add_block').required = isWarga;
     document.getElementById('add_number').required = isWarga;
 
-    // Koordinat GPS hanya untuk satpam & sampah
-    koordSec.style.display = isFieldOfficer ? 'block' : 'none';
+    // Bagian komplek selalu tampil; koordinat selalu terlihat
+    // Isi koordinat default dari komplek bila belum ada nilai
     if (isFieldOfficer) {
-      // Isi koordinat default dari komplek yang dipilih
-      onAddComplexChange(document.getElementById('add_complex_id').value);
+      onAddComplexChange(document.getElementById('add_complex_id')?.value || '1');
     }
   }
 
   function onAddComplexChange(cxId) {
-    const defaults = {
-      '1': { lat: -6.208763, lng: 106.845599 },
-      '2': { lat: -6.215500, lng: 106.852000 }
-    };
-    const d = defaults[String(cxId)] || defaults['1'];
+    // Ambil koordinat dari data komplek (bukan hardcode)
+    const db = SibarData.load();
+    const cx = (db.complexes || []).find(c => String(c.id) === String(cxId));
+    if (!cx) return;
     const role = selectedAddRole;
     if (['satpam_siang','satpam_malam','sampah'].includes(role)) {
-      if (!document.getElementById('add_lat').value) document.getElementById('add_lat').value = d.lat;
-      if (!document.getElementById('add_lng').value) document.getElementById('add_lng').value = d.lng;
+      // Isi hanya jika field masih kosong (biarkan user yang sudah mengetik tidak tertimpa)
+      const latEl = document.getElementById('add_lat');
+      const lngEl = document.getElementById('add_lng');
+      if (latEl && !latEl.value) latEl.value = cx.latitude || '';
+      if (lngEl && !lngEl.value) lngEl.value = cx.longitude || '';
     }
   }
 
@@ -1520,10 +1584,10 @@
   }
 
   function onEditRoleChanged(role) {
+    // Rumah hanya untuk warga
     document.getElementById('editHouseSection').style.display = (role === 'warga') ? 'flex' : 'none';
-    const koord = document.getElementById('editKoordSection');
-    const isOfficer = ['satpam_siang','satpam_malam','sampah'].includes(role);
-    if (koord) koord.style.display = isOfficer ? 'block' : 'none';
+    // Koordinat & komplek selalu tampil untuk semua role (bisa diisi bebas)
+    // Tidak disembunyikan lagi
   }
 
   function closeEditModal() {

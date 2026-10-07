@@ -771,7 +771,8 @@
     #mapPickerOverlay {
       position: fixed; inset: 0; z-index: 9999;
       background: rgba(0,0,0,0.65);
-      display: none; align-items: flex-end;
+      display: none; /* JS yang mengontrol */
+      align-items: flex-end;
     }
     #mapPickerOverlay.active { display: flex; }
     #mapPickerSheet {
@@ -824,8 +825,8 @@
     }
     .btn-pick-map:active { opacity: 0.7; }
   </style>
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <!-- Leaflet CSS — tanpa integrity agar tidak diblokir browser mobile -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
 <body>
 
@@ -1737,126 +1738,162 @@
   </div>
 </div>
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WPeE=" crossorigin=""></script>
+<!-- Leaflet JS — tanpa integrity agar tidak diblokir browser mobile -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script>
 // ========== MAP PICKER LOGIC ==========
 let _mapInstance  = null;
 let _mapMarker    = null;
-let _mapPickerFor = null; // 'add' atau 'edit'
+let _mapPickerFor = null;
 let _mapPending   = { lat: null, lng: null };
+let _pinIcon      = null;
+
+// Buat icon pin sekali saja, setelah Leaflet load
+function _getPinIcon() {
+  if (!_pinIcon && typeof L !== 'undefined') {
+    _pinIcon = L.divIcon({
+      className: '',
+      html: `<svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 0C7.163 0 0 7.163 0 16c0 12 16 24 16 24s16-12 16-24C32 7.163 24.837 0 16 0z" fill="#0071e3"/>
+        <circle cx="16" cy="16" r="7" fill="white"/>
+        <circle cx="16" cy="16" r="4" fill="#0071e3"/>
+      </svg>`,
+      iconSize: [32, 40],
+      iconAnchor: [16, 40],
+      popupAnchor: [0, -40]
+    });
+  }
+  return _pinIcon;
+}
 
 function openMapPicker(formPrefix) {
+  if (typeof L === 'undefined') {
+    alert('Memuat peta… Coba lagi sebentar.');
+    return;
+  }
+
   _mapPickerFor = formPrefix;
   const latEl = document.getElementById(formPrefix + '_lat');
   const lngEl = document.getElementById(formPrefix + '_lng');
 
-  // Pusat peta: ambil dari field, atau koordinat komplek terpilih, atau Jakarta default
-  let centerLat = parseFloat(latEl?.value) || -6.208763;
-  let centerLng = parseFloat(lngEl?.value) || 106.845599;
+  const centerLat = parseFloat(latEl?.value) || -6.208763;
+  const centerLng = parseFloat(lngEl?.value) || 106.845599;
 
-  document.getElementById('mapPickerOverlay').classList.add('active');
-  document.getElementById('mapCoordPreview').innerHTML =
-    latEl?.value
-      ? `<strong>Koordinat saat ini:</strong><br>${centerLat}, ${centerLng}`
-      : 'Belum ada titik dipilih.<br><span style="color:#8e8e93;">Tap peta untuk memilih lokasi.</span>';
+  // Tampilkan overlay
+  const overlay = document.getElementById('mapPickerOverlay');
+  overlay.style.display = 'flex';
+  // Force reflow lalu tambah class active untuk animasi
+  overlay.offsetHeight;
+  overlay.classList.add('active');
+
+  document.getElementById('mapCoordPreview').innerHTML = latEl?.value
+    ? `<strong>Koordinat saat ini:</strong><br>Lat: ${centerLat} &nbsp; Lng: ${centerLng}`
+    : 'Belum ada titik dipilih.<br><span style="color:#8e8e93;">Tap peta untuk memilih lokasi.</span>';
   document.getElementById('btnConfirmMap').disabled = !latEl?.value;
+  _mapPending = latEl?.value ? { lat: centerLat, lng: centerLng } : { lat: null, lng: null };
 
-  // Init atau update peta
+  // Tunggu animasi sheet selesai (300ms) baru init peta
   setTimeout(() => {
+    const container = document.getElementById('mapContainer');
+
     if (!_mapInstance) {
+      // Pastikan container punya dimensi
+      container.style.height = (window.innerHeight * 0.72) + 'px';
+
       _mapInstance = L.map('mapContainer', {
         zoomControl: true,
-        attributionControl: true
+        tap: true,            // penting untuk mobile iOS
+        tapTolerance: 15
       }).setView([centerLat, centerLng], 16);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19
+        attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+        maxZoom: 19,
+        crossOrigin: true
       }).addTo(_mapInstance);
 
-      // Custom marker icon (pin biru Apple-style)
-      const pinIcon = L.divIcon({
-        className: '',
-        html: `<svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M16 0C7.163 0 0 7.163 0 16c0 12 16 24 16 24s16-12 16-24C32 7.163 24.837 0 16 0z" fill="#0071e3"/>
-          <circle cx="16" cy="16" r="7" fill="white"/>
-          <circle cx="16" cy="16" r="4" fill="#0071e3"/>
-        </svg>`,
-        iconSize: [32, 40],
-        iconAnchor: [16, 40],
-        popupAnchor: [0, -40]
-      });
-
-      // Jika sudah ada koordinat, pasang marker awal
+      // Pasang marker awal jika ada koordinat
       if (latEl?.value) {
-        _mapMarker = L.marker([centerLat, centerLng], { icon: pinIcon, draggable: true }).addTo(_mapInstance);
-        _mapMarker.bindPopup('<b>Titik terpilih</b><br>Seret untuk pindahkan').openPopup();
-        _mapPending = { lat: centerLat, lng: centerLng };
-        _mapMarker.on('dragend', e => {
-          const pos = e.target.getLatLng();
-          _mapPending = { lat: parseFloat(pos.lat.toFixed(6)), lng: parseFloat(pos.lng.toFixed(6)) };
-          updateCoordPreview();
-        });
+        _mapMarker = L.marker([centerLat, centerLng], {
+          icon: _getPinIcon(), draggable: true
+        }).addTo(_mapInstance);
+        _mapMarker.bindTooltip('Seret untuk pindahkan', { permanent: false });
+        _mapMarker.on('dragend', _onMarkerDrag);
       }
 
-      // Klik peta → pindah/buat marker
-      _mapInstance.on('click', function(e) {
-        const { lat, lng } = e.latlng;
-        _mapPending = { lat: parseFloat(lat.toFixed(6)), lng: parseFloat(lng.toFixed(6)) };
-
-        if (_mapMarker) {
-          _mapMarker.setLatLng([_mapPending.lat, _mapPending.lng]);
-        } else {
-          _mapMarker = L.marker([_mapPending.lat, _mapPending.lng], { icon: pinIcon, draggable: true }).addTo(_mapInstance);
-          _mapMarker.on('dragend', ev => {
-            const pos = ev.target.getLatLng();
-            _mapPending = { lat: parseFloat(pos.lat.toFixed(6)), lng: parseFloat(pos.lng.toFixed(6)) };
-            updateCoordPreview();
-          });
-        }
-        updateCoordPreview();
-        document.getElementById('btnConfirmMap').disabled = false;
-      });
+      // Tap/klik peta → buat atau pindah marker
+      _mapInstance.on('click', _onMapClick);
 
     } else {
-      // Peta sudah ada — pindah ke lokasi baru
+      // Peta sudah ada — pindah view & perbarui marker
+      _mapInstance.invalidateSize(true);
       _mapInstance.setView([centerLat, centerLng], 16);
-      _mapInstance.invalidateSize();
 
       if (latEl?.value) {
         _mapPending = { lat: centerLat, lng: centerLng };
         if (_mapMarker) {
           _mapMarker.setLatLng([centerLat, centerLng]);
+        } else {
+          _mapMarker = L.marker([centerLat, centerLng], {
+            icon: _getPinIcon(), draggable: true
+          }).addTo(_mapInstance);
+          _mapMarker.on('dragend', _onMarkerDrag);
         }
         updateCoordPreview();
+      } else if (_mapMarker) {
+        _mapInstance.removeLayer(_mapMarker);
+        _mapMarker = null;
       }
     }
-  }, 120); // delay kecil agar sheet sudah ter-render dulu
+
+    // invalidateSize ulang setelah render tiles
+    setTimeout(() => { if (_mapInstance) _mapInstance.invalidateSize(true); }, 300);
+
+  }, 320); // 320ms > durasi animasi sheet (280ms)
+}
+
+function _onMapClick(e) {
+  const { lat, lng } = e.latlng;
+  _mapPending = { lat: parseFloat(lat.toFixed(6)), lng: parseFloat(lng.toFixed(6)) };
+  if (_mapMarker) {
+    _mapMarker.setLatLng([_mapPending.lat, _mapPending.lng]);
+  } else {
+    _mapMarker = L.marker([_mapPending.lat, _mapPending.lng], {
+      icon: _getPinIcon(), draggable: true
+    }).addTo(_mapInstance);
+    _mapMarker.on('dragend', _onMarkerDrag);
+  }
+  updateCoordPreview();
+  document.getElementById('btnConfirmMap').disabled = false;
+}
+
+function _onMarkerDrag(e) {
+  const pos = e.target.getLatLng();
+  _mapPending = { lat: parseFloat(pos.lat.toFixed(6)), lng: parseFloat(pos.lng.toFixed(6)) };
+  updateCoordPreview();
 }
 
 function updateCoordPreview() {
   const { lat, lng } = _mapPending;
-  const previewEl = document.getElementById('mapCoordPreview');
-  const confirmBtn = document.getElementById('btnConfirmMap');
   if (lat !== null && lng !== null) {
-    previewEl.innerHTML = `<strong>📍 Titik dipilih:</strong><br>Lat: <code>${lat}</code> &nbsp; Lng: <code>${lng}</code>`;
-    confirmBtn.disabled = false;
+    document.getElementById('mapCoordPreview').innerHTML =
+      `<strong>📍 Titik dipilih:</strong><br>Lat: <code>${lat}</code> &nbsp; Lng: <code>${lng}</code>`;
+    document.getElementById('btnConfirmMap').disabled = false;
   }
 }
 
 function confirmMapLocation() {
   if (_mapPending.lat === null) return;
-  const latEl = document.getElementById(_mapPickerFor + '_lat');
-  const lngEl = document.getElementById(_mapPickerFor + '_lng');
-  if (latEl) latEl.value = _mapPending.lat;
-  if (lngEl) lngEl.value = _mapPending.lng;
+  document.getElementById(_mapPickerFor + '_lat').value = _mapPending.lat;
+  document.getElementById(_mapPickerFor + '_lng').value = _mapPending.lng;
   closeMapPicker();
 }
 
 function closeMapPicker() {
-  document.getElementById('mapPickerOverlay').classList.remove('active');
-  // Reset pending
+  const overlay = document.getElementById('mapPickerOverlay');
+  overlay.classList.remove('active');
+  // Sembunyikan benar-benar setelah animasi
+  setTimeout(() => { overlay.style.display = 'none'; }, 280);
   _mapPending = { lat: null, lng: null };
 }
 </script>

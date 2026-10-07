@@ -218,7 +218,19 @@ unset($_SESSION['flash_success']);
           </div>
         </div>
 
-        <div class="map-blocks">
+        <!-- PENCARIAN PETA RUMAH -->
+        <div class="map-search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="mapSearchInput" placeholder="Cari nama KK, nomor rumah, blok, atau jalur..." oninput="filterMapHouses()" autocomplete="off">
+          <button type="button" class="map-search-clear" id="mapSearchClear" onclick="clearMapSearch()" style="display:none;">&times;</button>
+        </div>
+        <div class="map-search-empty" id="mapSearchEmpty" style="display:none;">
+          <div style="font-size:26px;">🔍</div>
+          <p><strong>Tidak ada rumah yang cocok.</strong></p>
+          <p style="font-size:12px;">Coba kata kunci lain — misalnya nama kepala keluarga, nomor rumah (mis. <em>12</em>), blok (mis. <em>B3</em>), atau jalur.</p>
+        </div>
+
+        <div class="map-blocks" id="mapBlocks">
           <?php
           // Kelompokkan rumah berdasarkan blok, lalu jalur
           $blocks = [];
@@ -278,13 +290,15 @@ unset($_SESSION['flash_success']);
                       $isAllPaid = $stat['total'] > 0 && $stat['unpaid'] === 0;
                       ?>
                       <?php if (!$hasKK): ?>
-                        <span class="house-chip no-user" title="Belum ada akun KK terdaftar">
+                        <span class="house-chip no-user" title="Belum ada akun KK terdaftar"
+                              data-search="<?= htmlspecialchars(strtolower('blok ' . $blockName . ' ' . $laneName . ' no ' . $h['number'] . ' kosong')) ?>">
                           <span class="chip-icon">🏠</span>
                           <span>No. <?= htmlspecialchars($h['number']) ?></span>
                           <span class="chip-status" style="background:#e5e5ea; color:var(--text-tertiary);">Kosong</span>
                         </span>
                       <?php else: ?>
                         <button type="button" class="house-chip <?= $isAllPaid ? 'all-paid' : 'has-unpaid' ?>"
+                                data-search="<?= htmlspecialchars(strtolower('blok ' . $blockName . ' ' . $laneName . ' no ' . $h['number'] . ' ' . $kkByHouse[$hid]['full_name'] . ' ' . $kkByHouse[$hid]['username'])) ?>"
                                 onclick='openHouseDetail(<?= json_encode([
                                     'house' => $h,
                                     'kk' => $kkByHouse[$hid],
@@ -293,7 +307,10 @@ unset($_SESSION['flash_success']);
                                     'scope' => $scopeLabel,
                                 ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP) ?>)'>
                           <span class="chip-icon"><?= $isAllPaid ? '🏡' : '🏚️' ?></span>
-                          <span>No. <?= htmlspecialchars($h['number']) ?></span>
+                          <span class="chip-main">
+                            <span class="chip-no">No. <?= htmlspecialchars($h['number']) ?></span>
+                            <span class="chip-name"><?= htmlspecialchars($kkByHouse[$hid]['full_name']) ?></span>
+                          </span>
                           <span class="chip-status"><?= $isAllPaid ? 'Lunas' : ($stat['unpaid'] . ' Belum') ?></span>
                         </button>
                       <?php endif; ?>
@@ -352,6 +369,44 @@ unset($_SESSION['flash_success']);
 </div>
 
 <script>
+  // ===== PENCARIAN PETA RUMAH =====
+  function filterMapHouses() {
+    const q = (document.getElementById('mapSearchInput').value || '').toLowerCase().trim();
+    const clearBtn = document.getElementById('mapSearchClear');
+    const emptyBox = document.getElementById('mapSearchEmpty');
+    clearBtn.style.display = q ? 'flex' : 'none';
+
+    let totalVisible = 0;
+
+    document.querySelectorAll('#mapBlocks .block-panel').forEach(panel => {
+      let panelVisible = 0;
+
+      panel.querySelectorAll('.lane-row').forEach(laneRow => {
+        let laneVisible = 0;
+
+        laneRow.querySelectorAll('.house-chip').forEach(chip => {
+          const text = chip.dataset.search || chip.innerText.toLowerCase();
+          const match = !q || text.includes(q);
+          chip.style.display = match ? '' : 'none';
+          if (match) { laneVisible++; totalVisible++; }
+        });
+
+        laneRow.style.display = laneVisible > 0 ? '' : 'none';
+        panelVisible += laneVisible;
+      });
+
+      panel.style.display = panelVisible > 0 ? '' : 'none';
+    });
+
+    emptyBox.style.display = (q && totalVisible === 0) ? 'block' : 'none';
+  }
+
+  function clearMapSearch() {
+    document.getElementById('mapSearchInput').value = '';
+    filterMapHouses();
+    document.getElementById('mapSearchInput').focus();
+  }
+
   const esc = (s) => {
     const d = document.createElement('div');
     d.textContent = s ?? '';

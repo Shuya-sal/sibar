@@ -18,11 +18,16 @@
   border: 1px solid rgba(105, 65, 198, 0.25);
 }
 
-.role-badge.satpam_siang,
-.role-badge.satpam_malam {
+.role-badge.satpam_siang {
   background: var(--accent-blue-subtle);
   color: var(--accent-blue);
   border: 1px solid rgba(0, 113, 227, 0.25);
+}
+
+.role-badge.satpam_malam {
+  background: #24292f;
+  color: #fff;
+  border: 1px solid #24292f;
 }
 
 .role-badge.sampah {
@@ -49,6 +54,76 @@
   flex-wrap: wrap;
   margin-bottom: 16px;
 }
+
+/* Search Bar Peta Rumah */
+.map-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.map-search-wrap svg {
+  position: absolute;
+  left: 13px;
+  width: 15px;
+  height: 15px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.map-search-wrap input {
+  width: 100%;
+  padding: 11px 40px 11px 36px;
+  font-size: 13.5px;
+  font-family: inherit;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.map-search-wrap input:focus {
+  border-color: var(--accent-blue);
+  background: #fff;
+  box-shadow: 0 0 0 3px var(--accent-blue-subtle);
+}
+
+.map-search-clear {
+  position: absolute;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: #d1d1d6;
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s ease;
+}
+
+.map-search-clear:hover {
+  background: #aeaeb2;
+}
+
+.map-search-empty {
+  padding: 36px 24px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 13.5px;
+  background: var(--bg-subtle);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+}
+
+.map-search-empty p { margin: 4px 0; }
 
 .map-legend {
   display: flex;
@@ -195,6 +270,28 @@
 
 .house-chip .chip-icon {
   font-size: 13px;
+}
+
+.house-chip .chip-main {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.house-chip .chip-no {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.house-chip .chip-name {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .house-chip .chip-status {
@@ -375,26 +472,40 @@
   /* Chip Rumah di Layar Mobile: Grid 2 kolom rapi & mudah ditekan jempol */
   .house-chips {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: 8px;
   }
 
   .house-chip {
-    min-height: 48px; /* Apple HIG standard tap target >= 44px */
+    min-height: 52px; /* Apple HIG standard tap target >= 44px */
     padding: 10px 12px;
     justify-content: space-between;
     width: 100%;
+    box-sizing: border-box;
+    max-width: 100%;
     border-radius: var(--radius-sm);
   }
 
   .house-chip .chip-name {
-    font-size: 13px;
-    font-weight: 600;
+    max-width: 150px;
   }
 
   .house-chip .chip-status {
     font-size: 9.5px;
     padding: 2px 7px;
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+
+  /* Search bar peta: lebih besar & sticky-friendly di ponsel */
+  .map-search-wrap input {
+    padding: 13px 42px 13px 38px;
+    font-size: 14px;
+  }
+
+  .map-search-clear {
+    width: 30px;
+    height: 30px;
   }
 
   /* Drawer Rumah menjadi Apple Bottom Sheet di Ponsel */

@@ -325,13 +325,54 @@ foreach ($allUsers as $u) {
   <link rel="stylesheet" href="assets/css/monitoring.css">
   <style>
     /* Styling Tambahan Pengaturan Akun */
+    .page-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .page-header-title h2 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .page-header-title .count-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      height: 26px;
+      padding: 0 8px;
+      background: var(--accent-blue-subtle);
+      color: var(--accent-blue);
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: var(--radius-pill);
+    }
+
+    .page-header-title p {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      margin: 4px 0 0;
+    }
+
     .admin-toolbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 16px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
     .filter-tabs {
@@ -342,6 +383,11 @@ foreach ($allUsers as $u) {
       border-radius: var(--radius-pill);
       border: 1px solid var(--border-subtle);
       overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .filter-tabs::-webkit-scrollbar {
+      display: none;
     }
 
     .filter-tab {
@@ -371,26 +417,30 @@ foreach ($allUsers as $u) {
 
     .search-input-wrap input {
       width: 100%;
-      padding: 7px 12px 7px 32px;
+      padding: 8px 14px 8px 32px;
       font-size: 12.5px;
       border-radius: var(--radius-pill);
       border: 1px solid var(--border-subtle);
-      background: #fff;
+      background: var(--bg-subtle);
       outline: none;
+      transition: all 0.15s ease;
     }
 
     .search-input-wrap input:focus {
       border-color: var(--accent-blue);
+      background: #fff;
+      box-shadow: 0 0 0 3px var(--accent-blue-subtle);
     }
 
     .search-input-wrap svg {
       position: absolute;
-      left: 10px;
+      left: 11px;
       top: 50%;
       transform: translateY(-50%);
       width: 14px;
       height: 14px;
       color: var(--text-tertiary);
+      pointer-events: none;
     }
 
     .btn-action-icon {
@@ -541,48 +591,25 @@ foreach ($allUsers as $u) {
         <span class="current">Kelola Akun &amp; Pengaturan</span>
       </div>
       <div class="header-actions">
-        <button type="button" class="btn-primary" onclick="openAddModal()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Tambah Akun Baru
-        </button>
       </div>
     </header>
 
     <div class="content-body">
 
-      <!-- WELCOME HERO -->
-      <section class="household-hero">
-        <div class="hero-meta">
-          <h2>Pusat Pengaturan Pengguna &amp; Rumah</h2>
-          <p>Kelola seluruh akun <strong>Kepala Keluarga (Warga)</strong>, <strong>Satpam Jaga Siang &amp; Malam</strong>, serta <strong>Petugas Sampah</strong>. Tambah, edit kredensial/data unit, atau hapus akses pengguna dari sistem.</p>
-          <div class="hero-badges">
-            <span class="hero-tag">Akses: Super Admin RT 04</span>
-            <span class="hero-tag">Total Akun: <?= $counts['all'] ?> Pengguna</span>
-            <span class="hero-tag"><?= $counts['warga'] ?> Kepala Keluarga</span>
-            <span class="hero-tag"><?= $counts['satpam'] ?> Satpam</span>
-            <span class="hero-tag"><?= $counts['sampah'] ?> Petugas Sampah</span>
-          </div>
+      <!-- HEADER RINGKAS -->
+      <div class="page-header-row">
+        <div class="page-header-title">
+          <h2>Kelola Akun</h2>
+          <p>Kepala Keluarga, Satpam Jaga Siang &amp; Malam, dan Petugas Sampah.</p>
         </div>
-        <div class="hero-summary-box">
-          <div class="sub">Total Entitas</div>
-          <div class="amount"><?= $counts['all'] ?> <span style="font-size:14px; color:var(--text-tertiary); font-weight:500;">Akun</span></div>
-          <span class="status-badge paid">● Data Tersinkronisasi</span>
-        </div>
-      </section>
+        <button type="button" class="btn-primary" onclick="openAddModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Tambah Akun
+        </button>
+      </div>
 
       <!-- TABEL DAFTAR PENGGUNA -->
       <section class="section-container">
-        <div class="section-header">
-          <div class="section-title-wrap">
-            <h3>Daftar Pengguna Sistem SIBAR</h3>
-            <p>Gunakan filter tab dan bilah pencarian untuk menyaring akun yang ingin diatur.</p>
-          </div>
-          <div class="search-input-wrap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <input type="text" id="searchInput" placeholder="Cari nama, akun, blok..." onkeyup="filterUserTable()">
-          </div>
-        </div>
-
         <div class="admin-toolbar">
           <div class="filter-tabs">
             <button type="button" class="filter-tab active" onclick="setRoleFilter('all', this)">Semua (<?= $counts['all'] ?>)</button>
@@ -591,6 +618,12 @@ foreach ($allUsers as $u) {
             <button type="button" class="filter-tab" onclick="setRoleFilter('sampah', this)">Sampah (<?= $counts['sampah'] ?>)</button>
             <button type="button" class="filter-tab" onclick="setRoleFilter('super_admin', this)">Super Admin (<?= $counts['admin'] ?>)</button>
           </div>
+          <div class="search-input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="searchInput" placeholder="Cari nama, akun, blok..." onkeyup="filterUserTable()">
+          </div>
+        </div>
+        <div style="padding: 0 18px;">
           <span style="font-size:12px; color:var(--text-tertiary);" id="rowCountLabel">Menampilkan <?= count($allUsers) ?> akun</span>
         </div>
 
@@ -599,11 +632,8 @@ foreach ($allUsers as $u) {
             <thead>
               <tr>
                 <th>Pengguna</th>
-                <th>Username &amp; Kontak</th>
-                <th>Peran (Role)</th>
-                <th>Alamat Unit / Jalur</th>
-                <th>Status Huni</th>
-                <th>Terdaftar</th>
+                <th>Peran</th>
+                <th>Kontak &amp; Alamat</th>
                 <th style="text-align:right;">Aksi</th>
               </tr>
             </thead>
@@ -618,16 +648,10 @@ foreach ($allUsers as $u) {
                     default => 'all'
                 };
                 ?>
-                <tr data-role="<?= htmlspecialchars($u['role']) ?>" data-category="<?= htmlspecialchars($roleCategory) ?>">
+                <tr data-role="<?= htmlspecialchars($u['role']) ?>" data-category="<?= htmlspecialchars($roleCategory) ?>" data-search="<?= htmlspecialchars(strtolower($u['full_name'] . ' ' . $u['username'] . ' ' . ($u['phone'] ?? '') . ' ' . ($u['block'] ?? '') . ' ' . ($u['number'] ?? '') . ' ' . ($u['lane'] ?? ''))) ?>">
                   <td>
                     <div style="font-weight:600; color:var(--text-primary);"><?= htmlspecialchars($u['full_name']) ?></div>
-                    <div style="font-size:11px; color:var(--text-tertiary);">ID: #<?= $u['id'] ?></div>
-                  </td>
-                  <td>
-                    <div style="font-family:ui-monospace, monospace; font-size:12px; font-weight:600; color:var(--text-primary);">
-                      <?= htmlspecialchars($u['username']) ?>
-                    </div>
-                    <div style="font-size:11.5px; color:var(--text-secondary);"><?= htmlspecialchars($u['phone']) ?></div>
+                    <div style="font-family:ui-monospace, monospace; font-size:11.5px; color:var(--text-tertiary); margin-top:2px;"><?= htmlspecialchars($u['username']) ?></div>
                   </td>
                   <td>
                     <span class="role-badge <?= htmlspecialchars($u['role']) ?>">
@@ -635,32 +659,18 @@ foreach ($allUsers as $u) {
                     </span>
                   </td>
                   <td>
+                    <div style="font-size:12.5px; color:var(--text-primary);"><?= htmlspecialchars($u['phone'] ?: '—') ?></div>
                     <?php if ($u['role'] === 'warga' && !empty($u['block'])): ?>
-                      <div style="font-weight:600; color:var(--text-primary);">
-                        Blok <?= htmlspecialchars($u['block']) ?> / No. <?= htmlspecialchars($u['number']) ?>
-                      </div>
-                      <div style="font-size:11px; color:var(--text-tertiary);">
-                        <?= htmlspecialchars($u['lane'] ?: 'Jalur Utama') ?>
+                      <div style="font-size:11.5px; color:var(--text-tertiary); margin-top:2px;">
+                        Blok <?= htmlspecialchars($u['block']) ?> / No. <?= htmlspecialchars($u['number']) ?> · <?= htmlspecialchars($u['lane'] ?: 'Jalur Utama') ?> · <?= ucfirst(htmlspecialchars($u['status_huni'] ?: 'tetap')) ?>
                       </div>
                     <?php elseif ($u['role'] === 'satpam_siang' || $u['role'] === 'satpam_malam'): ?>
-                      <div style="color:var(--text-secondary);">Pos Jaga Lingkungan</div>
+                      <div style="font-size:11.5px; color:var(--text-tertiary); margin-top:2px;">Pos Jaga Lingkungan</div>
                     <?php elseif ($u['role'] === 'sampah'): ?>
-                      <div style="color:var(--text-secondary);">TPS / Kebersihan RT</div>
+                      <div style="font-size:11.5px; color:var(--text-tertiary); margin-top:2px;">TPS / Kebersihan RT</div>
                     <?php else: ?>
-                      <div style="color:var(--text-secondary);">Kantor Pengurus RT</div>
+                      <div style="font-size:11.5px; color:var(--text-tertiary); margin-top:2px;">Kantor Pengurus RT</div>
                     <?php endif; ?>
-                  </td>
-                  <td>
-                    <?php if ($u['role'] === 'warga'): ?>
-                      <span class="status-badge <?= $u['status_huni'] === 'tetap' ? 'paid' : 'unpaid' ?>">
-                        <?= ucfirst(htmlspecialchars($u['status_huni'] ?: 'tetap')) ?>
-                      </span>
-                    <?php else: ?>
-                      <span style="font-size:11px; color:var(--text-tertiary);">Petugas</span>
-                    <?php endif; ?>
-                  </td>
-                  <td style="font-size:11.5px; color:var(--text-tertiary);">
-                    <?= !empty($u['created_at']) ? date('d M Y', strtotime($u['created_at'])) : '-' ?>
                   </td>
                   <td style="text-align:right; white-space:nowrap;">
                     <button type="button" class="btn-action-icon" onclick='openEditModal(<?= json_encode($u, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP) ?>)'>
@@ -974,13 +984,13 @@ foreach ($allUsers as $u) {
   }
 
   function filterUserTable() {
-    const q = (document.getElementById('searchInput').value || '').toLowerCase();
+    const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
     const rows = document.querySelectorAll('#usersTable tbody tr');
     let visibleCount = 0;
 
     rows.forEach(tr => {
       const cat = tr.dataset.category;
-      const text = tr.innerText.toLowerCase();
+      const text = tr.dataset.search || tr.innerText.toLowerCase();
       const matchCat = (activeRoleCategory === 'all' || cat === activeRoleCategory);
       const matchQuery = (!q || text.includes(q));
 

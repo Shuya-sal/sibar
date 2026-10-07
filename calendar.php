@@ -23,24 +23,49 @@ if ($selectedMonth !== 'all' && ($selectedMonth < 1 || $selectedMonth > 12)) {
 }
 
 // Penentuan target rumah yang dilihat
-$allHouses = $db->query("
-    SELECT h.id, h.block, h.number, h.lane, u.full_name, u.username
+// Ambil semua kompleks
+$allComplexes = $db->query("SELECT id, code, name, address, latitude, longitude FROM complexes ORDER BY id ASC")->fetchAll();
+if (empty($allComplexes)) {
+    // Fallback jika tabel complexes belum ada / kosong
+    $allComplexes = [['id'=>1, 'code'=>'graha-asri', 'name'=>'Komplek Graha Asri RT 04', 'address'=>'', 'latitude'=>-6.208763, 'longitude'=>106.845599]];
+}
+
+// Filter komplek & blok
+$selectedComplexId = isset($_GET['complex_id']) ? sanitizeInt($_GET['complex_id'], 1) : 1;
+$selectedBlock = isset($_GET['block']) && preg_match('/^[A-Z0-9]+$/', strtoupper($_GET['block'])) ? strtoupper($_GET['block']) : 'all';
+
+// Ambil semua rumah di komplek terpilih
+$stmtHousesInCx = $db->prepare("
+    SELECT h.id, h.block, h.number, h.lane, h.complex_id, u.full_name, u.username
     FROM houses h
     LEFT JOIN users u ON u.house_id = h.id AND u.role = 'warga'
+    WHERE h.complex_id = :cid OR h.complex_id IS NULL
     ORDER BY h.block ASC, CAST(h.number AS UNSIGNED) ASC
-")->fetchAll();
+");
+$stmtHousesInCx->execute([':cid' => $selectedComplexId]);
+$allHousesInCx = $stmtHousesInCx->fetchAll();
+
+// Daftar blok unik dari komplek terpilih
+$allBlocks = array_values(array_unique(array_column($allHousesInCx, 'block')));
+sort($allBlocks);
+
+// Filter per blok
+$allHouses = ($selectedBlock === 'all')
+    ? $allHousesInCx
+    : array_filter($allHousesInCx, fn($h) => $h['block'] === $selectedBlock);
+$allHouses = array_values($allHouses);
 
 if ($isWarga) {
     // Warga hanya boleh melihat rumahnya sendiri (Anti-IDOR)
     $targetHouseId = (int)$user['house_id'];
 } else {
-    // Petugas & Super Admin bisa memilih rumah atau melihat rekap perumahan
     $requestedHouseId = isset($_GET['house_id']) ? sanitizeInt($_GET['house_id'], 0) : 0;
-    if ($requestedHouseId > 0) {
+    if ($requestedHouseId > 0 && in_array($requestedHouseId, array_column($allHouses, 'id'), false)) {
         $targetHouseId = $requestedHouseId;
+    } elseif (!empty($allHouses)) {
+        $targetHouseId = (int)$allHouses[0]['id'];
     } else {
-        // Default ke rumah pertama atau rumah B3-12
-        $targetHouseId = (int)($allHouses[3]['id'] ?? ($allHouses[0]['id'] ?? 1));
+        $targetHouseId = 4; // fallback B3-12
     }
 }
 
@@ -600,26 +625,59 @@ unset($_SESSION['flash_success']);
         </div>
       </section>
 
-      <!-- KONTROL PEMILIHAN TAHUN, BULAN & RUMAH -->
+      <!-- KONTROL PEMILIHAN TAHUN, KOMPLEK, BLOK, RUMAH, BULAN -->
       <div class="cal-controls-card">
-        <!-- Pilihan Tahun -->
+        <!-- Tahun -->
         <div class="cal-filter-group">
           <span class="cal-filter-label">Tahun:</span>
           <div class="year-pills">
-            <a href="calendar.php?year=2026&house_id=<?= $targetHouseId ?>&month=<?= e($selectedMonth) ?>" 
+            <a href="calendar.php?year=2026&complex_id=<?= $selectedComplexId ?>&block=<?= e($selectedBlock) ?>&house_id=<?= $targetHouseId ?>&month=<?= e($selectedMonth) ?>"
                class="pill-link <?= $selectedYear === 2026 ? 'active' : '' ?>">2026 (Aktif)</a>
-            <a href="calendar.php?year=2025&house_id=<?= $targetHouseId ?>&month=<?= e($selectedMonth) ?>" 
+            <a href="calendar.php?year=2025&complex_id=<?= $selectedComplexId ?>&block=<?= e($selectedBlock) ?>&house_id=<?= $targetHouseId ?>&month=<?= e($selectedMonth) ?>"
                class="pill-link <?= $selectedYear === 2025 ? 'active' : '' ?>">2025 (Arsip)</a>
           </div>
         </div>
 
-        <!-- Pilihan Rumah (Jika Petugas / Admin) -->
         <?php if (!$isWarga): ?>
+          <!-- Komplek -->
           <div class="cal-filter-group">
-            <span class="cal-filter-label">Unit Warga:</span>
+            <span class="cal-filter-label">Komplek:</span>
             <form method="GET" action="calendar.php" style="display:inline;">
               <input type="hidden" name="year" value="<?= e($selectedYear) ?>">
               <input type="hidden" name="month" value="<?= e($selectedMonth) ?>">
+              <select name="complex_id" class="house-select" onchange="this.form.submit()">
+                <?php foreach ($allComplexes as $cx): ?>
+                  <option value="<?= $cx['id'] ?>" <?= $cx['id'] == $selectedComplexId ? 'selected' : '' ?>>
+                    <?= e($cx['name']) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </form>
+          </div>
+
+          <!-- Filter Blok (pill link) -->
+          <?php if (!empty($allBlocks)): ?>
+            <div class="cal-filter-group" style="flex-wrap:wrap;">
+              <span class="cal-filter-label">Blok:</span>
+              <div class="year-pills" style="flex-wrap:wrap;">
+                <a href="calendar.php?year=<?= $selectedYear ?>&complex_id=<?= $selectedComplexId ?>&block=all&month=<?= e($selectedMonth) ?>"
+                   class="pill-link <?= $selectedBlock === 'all' ? 'active' : '' ?>">Semua Blok</a>
+                <?php foreach ($allBlocks as $blk): ?>
+                  <a href="calendar.php?year=<?= $selectedYear ?>&complex_id=<?= $selectedComplexId ?>&block=<?= urlencode($blk) ?>&month=<?= e($selectedMonth) ?>"
+                     class="pill-link <?= $selectedBlock === $blk ? 'active' : '' ?>">Blok <?= e($blk) ?></a>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          <?php endif; ?>
+
+          <!-- Unit Rumah -->
+          <div class="cal-filter-group">
+            <span class="cal-filter-label">Unit Rumah:</span>
+            <form method="GET" action="calendar.php" style="display:inline;">
+              <input type="hidden" name="year" value="<?= e($selectedYear) ?>">
+              <input type="hidden" name="month" value="<?= e($selectedMonth) ?>">
+              <input type="hidden" name="complex_id" value="<?= $selectedComplexId ?>">
+              <input type="hidden" name="block" value="<?= e($selectedBlock) ?>">
               <select name="house_id" class="house-select" onchange="this.form.submit()">
                 <?php foreach ($allHouses as $h): ?>
                   <option value="<?= $h['id'] ?>" <?= $h['id'] == $targetHouseId ? 'selected' : '' ?>>
@@ -631,13 +689,13 @@ unset($_SESSION['flash_success']);
           </div>
         <?php endif; ?>
 
-        <!-- Pilihan Bulan -->
+        <!-- Tampilan Bulan -->
         <div class="cal-filter-group">
           <span class="cal-filter-label">Tampilan:</span>
           <div class="month-pills">
-            <a href="calendar.php?year=<?= $selectedYear ?>&house_id=<?= $targetHouseId ?>&month=all" 
+            <a href="calendar.php?year=<?= $selectedYear ?>&complex_id=<?= $selectedComplexId ?>&block=<?= e($selectedBlock) ?>&house_id=<?= $targetHouseId ?>&month=all"
                class="pill-link <?= $selectedMonth === 'all' ? 'active' : '' ?>">12 Bulan</a>
-            <a href="calendar.php?year=<?= $selectedYear ?>&house_id=<?= $targetHouseId ?>&month=10" 
+            <a href="calendar.php?year=<?= $selectedYear ?>&complex_id=<?= $selectedComplexId ?>&block=<?= e($selectedBlock) ?>&house_id=<?= $targetHouseId ?>&month=10"
                class="pill-link <?= $selectedMonth === 10 ? 'active' : '' ?>">Bulan Ini (Okt)</a>
           </div>
         </div>

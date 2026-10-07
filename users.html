@@ -954,22 +954,24 @@
           <div class="form-group" style="margin-bottom:8px;">
             <label>Komplek Perumahan</label>
             <select id="add_complex_id" class="form-control" onchange="onAddComplexChange(this.value)">
-              <option value="1">Komplek Graha Asri RT 04</option>
-              <option value="2">Komplek Bukit Indah Asri RT 05</option>
+              <!-- Diisi JS dari data -->
             </select>
           </div>
           <div id="addKoordSection" style="display:none;">
-            <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:4px;">Koordinat GPS titik tugas (khusus Satpam & Sampah)</div>
+            <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:4px;">
+              📍 Koordinat GPS titik tugas — bisa diubah bebas sesuai lokasi pos
+            </div>
             <div class="form-grid-2">
               <div class="form-group">
                 <label>Latitude</label>
-                <input type="number" step="0.000001" id="add_lat" class="form-control" placeholder="-6.208763">
+                <input type="number" step="0.000001" id="add_lat" class="form-control" placeholder="contoh: -6.208763">
               </div>
               <div class="form-group">
                 <label>Longitude</label>
-                <input type="number" step="0.000001" id="add_lng" class="form-control" placeholder="106.845599">
+                <input type="number" step="0.000001" id="add_lng" class="form-control" placeholder="contoh: 106.845599">
               </div>
             </div>
+            <div style="font-size:10.5px; color:#0071e3; margin-top:2px;">💡 Terisi otomatis dari komplek — tapi bisa diubah manual</div>
           </div>
         </div>
 
@@ -1081,22 +1083,24 @@
           <div class="form-group" style="margin-bottom:8px;">
             <label>Komplek Perumahan</label>
             <select id="edit_complex_id" class="form-control">
-              <option value="1">Komplek Graha Asri RT 04</option>
-              <option value="2">Komplek Bukit Indah Asri RT 05</option>
+              <!-- Diisi JS dari data -->
             </select>
           </div>
           <div id="editKoordSection" style="display:none;">
-            <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:4px;">Koordinat GPS titik tugas (khusus Satpam & Sampah)</div>
+            <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:4px;">
+              📍 Koordinat GPS titik tugas — bisa diubah bebas sesuai lokasi pos
+            </div>
             <div class="form-grid-2">
               <div class="form-group">
                 <label>Latitude</label>
-                <input type="number" step="0.000001" id="edit_lat" class="form-control" placeholder="-6.208763">
+                <input type="number" step="0.000001" id="edit_lat" class="form-control" placeholder="contoh: -6.208763">
               </div>
               <div class="form-group">
                 <label>Longitude</label>
-                <input type="number" step="0.000001" id="edit_lng" class="form-control" placeholder="106.845599">
+                <input type="number" step="0.000001" id="edit_lng" class="form-control" placeholder="contoh: 106.845599">
               </div>
             </div>
+            <div style="font-size:10.5px; color:#0071e3; margin-top:2px;">💡 Nilai saat ini bisa diubah langsung — tidak perlu sesuai koordinat komplek</div>
           </div>
         </div>
 
@@ -1364,8 +1368,30 @@
   }
 
   // Add Modal
+  // Isi semua dropdown komplek dari data (bukan hardcode)
+  function populateComplexDropdowns() {
+    const db = SibarData.load();
+    const complexes = db.complexes || [];
+    ['add_complex_id', 'edit_complex_id'].forEach(selId => {
+      const sel = document.getElementById(selId);
+      if (!sel) return;
+      const curVal = sel.value;
+      sel.innerHTML = '';
+      complexes.forEach(cx => {
+        const opt = document.createElement('option');
+        opt.value = cx.id;
+        opt.textContent = cx.name;
+        if (String(cx.id) === String(curVal)) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      // Default ke komplek 1 jika tidak ada yang terpilih
+      if (!sel.value && complexes.length) sel.value = complexes[0].id;
+    });
+  }
+
   function openAddModal() {
     document.getElementById('addForm').reset();
+    populateComplexDropdowns();
     onRoleChanged('warga');
     document.getElementById('addModalOverlay').classList.add('active');
   }
@@ -1455,6 +1481,7 @@
 
   // Edit Modal
   function openEditModal(user) {
+    populateComplexDropdowns();
     document.getElementById('edit_user_id').value = user.id;
     document.getElementById('edit_name').value = user.name || '';
     document.getElementById('edit_phone').value = user.phone || '';

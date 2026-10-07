@@ -224,18 +224,43 @@
       background: #ffffff;
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
-      padding: 16px 20px;
+      padding: 14px 16px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 10px;
       box-shadow: var(--shadow-sm);
       margin-bottom: 20px;
     }
 
+    /* Wrapper filter row dengan fade kanan sebagai hint scroll */
+    .filter-row-wrap {
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Baris filter compact — horizontal scroll di mobile */
+    .filter-row-compact {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-end;
+      gap: 10px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+      -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
+      mask-image: linear-gradient(to right, black 80%, transparent 100%);
+    }
+    .filter-row-compact::-webkit-scrollbar { display: none; }
+
+    .filter-group-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
     .filter-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .filter-label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-tertiary); }
 
     .pills-bar {
       display: flex;
@@ -247,7 +272,7 @@
     }
 
     .pill-btn {
-      padding: 6px 14px;
+      padding: 5px 12px;
       font-size: 12px;
       font-weight: 500;
       color: var(--text-secondary);
@@ -265,6 +290,21 @@
       color: var(--text-primary);
       font-weight: 600;
       box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    /* Dropdown kecil untuk filter inline */
+    .select-input-sm {
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-subtle);
+      font-size: 12px;
+      color: var(--text-primary);
+      outline: none;
+      font-family: inherit;
+      cursor: pointer;
+      max-width: 180px;
     }
 
     .select-input {
@@ -546,44 +586,55 @@
 
       <!-- CONTROLS CARD -->
       <div class="cal-controls-card">
-        <!-- Pilihan Tahun -->
-        <div class="filter-group">
-          <span class="filter-label">Tahun:</span>
-          <div class="pills-bar">
-            <button type="button" class="pill-btn active" id="btnYear2026" onclick="setYear(2026)">2026 (Aktif)</button>
-            <button type="button" class="pill-btn" id="btnYear2025" onclick="setYear(2025)">2025 (Arsip)</button>
-          </div>
-        </div>
+        <!-- Filter Bertingkat: Tahun | Tampilan | Komplek | Blok | Unit -->
+        <div class="filter-row-wrap">
+        <div class="filter-row-compact">
 
-        <!-- Pilihan Bertingkat: Komplek → Blok → Unit Rumah -->
-        <div class="filter-group">
-          <span class="filter-label">Komplek:</span>
-          <select id="complexSelect" class="select-input" onchange="onComplexChange(this.value)">
-            <!-- JS populated -->
-          </select>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">Blok:</span>
-          <div class="pills-bar" id="blockPills">
-            <!-- JS populated -->
+          <!-- Tahun -->
+          <div class="filter-group-inline">
+            <span class="filter-label">Tahun</span>
+            <div class="pills-bar">
+              <button type="button" class="pill-btn active" id="btnYear2026" onclick="setYear(2026)">2026</button>
+              <button type="button" class="pill-btn" id="btnYear2025" onclick="setYear(2025)">2025</button>
+            </div>
           </div>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">Unit Rumah:</span>
-          <select id="houseSelect" class="select-input" onchange="onHouseChange(this.value)">
-            <!-- JS populated -->
-          </select>
-        </div>
 
-        <!-- Filter Bulan -->
-        <div class="filter-group">
-          <span class="filter-label">Tampilan:</span>
-          <div class="pills-bar">
-            <button type="button" class="pill-btn active" id="btnMonthAll" onclick="setMonth('all')">12 Bulan</button>
-            <button type="button" class="pill-btn" id="btnMonthCur" onclick="setMonth(10)">Bulan Ini (Okt)</button>
+          <!-- Tampilan -->
+          <div class="filter-group-inline">
+            <span class="filter-label">Tampilan</span>
+            <div class="pills-bar">
+              <button type="button" class="pill-btn active" id="btnMonthAll" onclick="setMonth('all')">12 Bulan</button>
+              <button type="button" class="pill-btn" id="btnMonthCur" onclick="setMonth(10)">Okt</button>
+            </div>
           </div>
-        </div>
-      </div>
+
+          <!-- Komplek -->
+          <div class="filter-group-inline" id="adminFilters">
+            <span class="filter-label">Komplek</span>
+            <select id="complexSelect" class="select-input-sm" onchange="onComplexChange(this.value)">
+              <!-- JS populated -->
+            </select>
+          </div>
+
+          <!-- Blok -->
+          <div class="filter-group-inline" id="blockFilter">
+            <span class="filter-label">Blok</span>
+            <select id="blockSelect" class="select-input-sm" onchange="onBlockChange(this.value)">
+              <!-- JS populated -->
+            </select>
+          </div>
+
+          <!-- Unit Rumah -->
+          <div class="filter-group-inline" id="houseFilter">
+            <span class="filter-label">Unit</span>
+            <select id="houseSelect" class="select-input-sm" onchange="onHouseChange(this.value)">
+              <!-- JS populated -->
+            </select>
+          </div>
+
+        </div><!-- /filter-row-compact -->
+        </div><!-- /filter-row-wrap -->
+      </div><!-- /cal-controls-card -->
 
       <!-- KPI ROW -->
       <section class="kpi-row">
@@ -679,25 +730,24 @@
     const user = SibarData.currentUser();
     if (!user) return;
 
-    // Kunci warga ke rumahnya sendiri
+    // Kunci warga ke rumahnya sendiri — sembunyikan filter admin
     if (user.role === 'warga' && user.house_id) {
       selectedHouseId = user.house_id;
       const h = db.houses.find(h => h.id === user.house_id);
-      if (h) {
-        selectedComplexId = h.complex_id || 1;
-        selectedBlock = h.block;
-      }
-      // Sembunyikan filter komplek/blok/house untuk warga
-      document.querySelectorAll('.filter-group').forEach((g, i) => {
-        if (i > 0 && i < 4) g.style.display = 'none'; // sembunyikan 3 filter selector
+      if (h) { selectedComplexId = h.complex_id || 1; selectedBlock = h.block; }
+      ['adminFilters','blockFilter','houseFilter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
       });
+      renderCalendar();
+      return;
     }
 
-    // Isi dropdown komplek
+    // Isi dropdown komplek dari data (bisa ada banyak)
     const cxSel = document.getElementById('complexSelect');
     if (cxSel) {
       cxSel.innerHTML = '';
-      (db.complexes || [{ id: 1, name: 'Komplek Graha Asri RT 04' }]).forEach(cx => {
+      (db.complexes || []).forEach(cx => {
         const opt = document.createElement('option');
         opt.value = cx.id;
         opt.textContent = cx.name;
@@ -706,7 +756,7 @@
       });
     }
 
-    refreshBlockPills(db);
+    refreshBlockSelect(db);
     refreshHouseSelect(db);
   }
 
@@ -714,34 +764,36 @@
     selectedComplexId = Number(val);
     selectedBlock = 'all';
     const db = SibarData.load();
-    refreshBlockPills(db);
+    refreshBlockSelect(db);
     refreshHouseSelect(db);
   }
 
-  function setBlock(block) {
-    selectedBlock = block;
+  function onBlockChange(val) {
+    selectedBlock = val;
     const db = SibarData.load();
-    // Update pill active state
-    document.querySelectorAll('#blockPills .pill-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.block === String(block));
-    });
+    // Reset house ke "Semua Unit" saat blok berubah
+    selectedHouseId = 0;
     refreshHouseSelect(db);
   }
 
-  function refreshBlockPills(db) {
-    const pills = document.getElementById('blockPills');
-    if (!pills) return;
+  function refreshBlockSelect(db) {
+    const sel = document.getElementById('blockSelect');
+    if (!sel) return;
     const houses = db.houses.filter(h => (h.complex_id || 1) === selectedComplexId);
-    const blocks = ['all', ...new Set(houses.map(h => h.block).sort())];
-    pills.innerHTML = '';
+    const blocks = [...new Set(houses.map(h => h.block).sort())];
+    sel.innerHTML = '';
+    // Opsi "Semua Blok"
+    const allOpt = document.createElement('option');
+    allOpt.value = 'all';
+    allOpt.textContent = 'Semua Blok';
+    if (selectedBlock === 'all') allOpt.selected = true;
+    sel.appendChild(allOpt);
     blocks.forEach(b => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'pill-btn' + (b === selectedBlock ? ' active' : '');
-      btn.dataset.block = b;
-      btn.textContent = b === 'all' ? 'Semua Blok' : `Blok ${b}`;
-      btn.onclick = () => setBlock(b);
-      pills.appendChild(btn);
+      const opt = document.createElement('option');
+      opt.value = b;
+      opt.textContent = 'Blok ' + b;
+      if (b === selectedBlock) opt.selected = true;
+      sel.appendChild(opt);
     });
   }
 
@@ -759,17 +811,17 @@
     if (!isWarga) {
       const allOpt = document.createElement('option');
       allOpt.value = '0';
-      allOpt.textContent = `📋 Semua Unit (${houses.length} rumah)`;
+      allOpt.textContent = `Semua Unit (${houses.length})`;
       if (selectedHouseId === 0) allOpt.selected = true;
       sel.appendChild(allOpt);
     }
 
     houses.forEach(h => {
       const kk = db.users.find(u => u.house_id === h.id && u.role === 'warga');
-      const ownerName = h.owner || (kk ? kk.name : 'Kosong');
+      const ownerName = h.owner || (kk ? (kk.name.replace(/^Bpk\.|^Ibu\./,'').trim()) : 'Kosong');
       const opt = document.createElement('option');
       opt.value = h.id;
-      opt.textContent = `Blok ${h.block}/No.${h.number} — ${ownerName}`;
+      opt.textContent = `${h.block}/${h.number} — ${ownerName}`;
       if (h.id === selectedHouseId) opt.selected = true;
       sel.appendChild(opt);
     });

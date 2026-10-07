@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIBAR — Portal Iuran Warga (Demo)</title>
+  <style>
+    :root {
+      --bg-page: #f5f5f7;
+      --bg-card: #ffffff;
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --text-primary: #1d1d1f;
+      --text-secondary: #6e6e73;
+      --text-tertiary: #86868b;
+      --accent-blue: #0071e3;
+      --badge-paid-text: #1b7a37;
+      --badge-paid-bg: #edf8f0;
+      --badge-paid-border: rgba(52, 199, 89, 0.22);
+      --radius-pill: 980px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-page); color: var(--text-primary);
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 32px 20px;
+      letter-spacing: -0.014em;
+    }
+    .hero { text-align: center; max-width: 640px; }
+    .logo-badge {
+      width: 56px; height: 56px; border-radius: 16px; background: var(--text-primary); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 20px;
+    }
+    h1 { font-size: 40px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.07; }
+    .hero p.sub { font-size: 17px; color: var(--text-secondary); margin-top: 12px; line-height: 1.47; }
+    .cta-row { display: flex; gap: 12px; justify-content: center; margin-top: 28px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 22px; border-radius: var(--radius-pill);
+      font-size: 14px; font-weight: 500; text-decoration: none; transition: all 0.15s ease;
+    }
+    .btn.primary { background: var(--accent-blue); color: #fff; }
+    .btn.primary:hover { background: #0077ed; }
+    .btn.ghost { border: 1px solid var(--accent-blue); color: var(--accent-blue); }
+    .btn.ghost:hover { background: var(--accent-blue); color: #fff; }
+    .roles-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px; max-width: 920px; width: 100%; margin-top: 48px;
+    }
+    .role-card {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: 16px; padding: 20px 22px;
+      display: flex; flex-direction: column; gap: 6px; text-align: left;
+      transition: box-shadow 0.15s ease, transform 0.15s ease;
+    }
+    .role-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); transform: translateY(-2px); }
+    .role-card .icon { font-size: 22px; }
+    .role-card h3 { font-size: 14.5px; font-weight: 600; }
+    .role-card p { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+    .role-card .user {
+      margin-top: 6px; font-size: 11.5px; color: var(--text-tertiary);
+      font-family: ui-monospace, Menlo, monospace;
+      background: var(--bg-page); align-self: flex-start;
+      padding: 3px 9px; border-radius: var(--radius-pill); border: 1px solid var(--border-subtle);
+    }
+    .note { margin-top: 36px; font-size: 11.5px; color: var(--text-tertiary); text-align: center; max-width: 560px; line-height: 1.6; }
+    .note a { color: var(--accent-blue); text-decoration: none; }
+    .badge-live {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--badge-paid-bg); color: var(--badge-paid-text);
+      border: 1px solid var(--badge-paid-border);
+      padding: 3px 10px; border-radius: var(--radius-pill);
+      font-size: 11px; font-weight: 600; margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="badge-live">● Live Demo — tanpa server, data di browser</div>
+  <div class="logo-badge">🏠</div>
+  <h1>SIBAR</h1>
+  <p class="sub">Sistem Informasi Iuran Keamanan &amp; Sampah.<br>
+  Kelola iuran jaga malam, jaga siang, dan sampah warga RT 04 / RW 08 — dari dashboard kepala keluarga sampai peta monitoring petugas.</p>
+  <div class="cta-row">
+    <a class="btn primary" href="login.html">Buka Demo →</a>
+    <a class="btn ghost" href="https://github.com/Shuya-sal/sibar">Kode Sumber (PHP + MySQL)</a>
+  </div>
+</div>
+
+<div class="roles-grid">
+  <div class="role-card">
+    <div class="icon">👨‍👩‍👧</div>
+    <h3>Warga — Kepala Keluarga</h3>
+    <p>Dashboard tagihan bulan berjalan (jaga malam, jaga siang, sampah) + riwayat pembayaran lunas dengan kwitansi digital.</p>
+    <span class="user">b3-12</span>
+  </div>
+  <div class="role-card">
+    <div class="icon">☀️</div>
+    <h3>Satpam Jaga Siang</h3>
+    <p>Peta rumah per blok &amp; jalur — melihat siapa saja yang sudah dan belum bayar iuran jaga siang.</p>
+    <span class="user">satpam_siang</span>
+  </div>
+  <div class="role-card">
+    <div class="icon">🌙</div>
+    <h3>Satpam Jaga Malam</h3>
+    <p>Peta rumah per blok &amp; jalur — melihat siapa saja yang sudah dan belum bayar iuran jaga malam.</p>
+    <span class="user">satpam_malam</span>
+  </div>
+  <div class="role-card">
+    <div class="icon">🗑️</div>
+    <h3>Petugas Sampah</h3>
+    <p>Peta rumah per blok &amp; jalur — melihat siapa saja yang sudah dan belum bayar iuran sampah.</p>
+    <span class="user">sampah</span>
+  </div>
+  <div class="role-card">
+    <div class="icon">👑</div>
+    <h3>Super Admin</h3>
+    <p>Akses seluruh konten: semua pos iuran, semua rumah, dan semua blok tanpa batasan lingkup.</p>
+    <span class="user">superadmin</span>
+  </div>
+</div>
+
+<p class="note">
+  Password semua akun demo: <strong>password123</strong>. Klik username akan mengisi form otomatis di halaman login.<br>
+  Data demo tersimpan di localStorage browser Anda — gunakan tombol <em>Reset Data Demo</em> untuk kembali ke kondisi awal.<br>
+  Versi produksi PHP + MySQL (XAMPP) tersedia di <a href="https://github.com/Shuya-sal/sibar">github.com/Shuya-sal/sibar</a>.
+</p>
+
+</body>
+</html>

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Peta Rumah — SIBAR Monitoring (Demo)</title>
+  <style>
+    :root {
+      --bg-page: #f5f5f7;
+      --bg-card: #ffffff;
+      --bg-subtle: #fbfbfd;
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --text-primary: #1d1d1f;
+      --text-secondary: #6e6e73;
+      --text-tertiary: #86868b;
+      --accent-blue: #0071e3;
+      --accent-blue-subtle: #f0f6fd;
+      --badge-unpaid-bg: #fff8eb;
+      --badge-unpaid-text: #b25e00;
+      --badge-unpaid-border: rgba(255, 149, 0, 0.22);
+      --badge-paid-bg: #edf8f0;
+      --badge-paid-text: #1b7a37;
+      --badge-paid-border: rgba(52, 199, 89, 0.22);
+      --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+      --shadow-hover: 0 6px 18px rgba(0, 0, 0, 0.06);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-pill: 980px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-page); color: var(--text-primary);
+      display: flex; letter-spacing: -0.014em; min-height: 100vh;
+    }
+    .sidebar {
+      width: 250px; background: rgba(255,255,255,0.95);
+      border-right: 1px solid var(--border-subtle);
+      display: flex; flex-direction: column; flex-shrink: 0;
+      position: sticky; top: 0; height: 100vh; z-index: 20;
+    }
+    .brand-section { padding: 22px 20px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-subtle); }
+    .brand-logo { width: 32px; height: 32px; border-radius: 8px; background: var(--text-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+    .brand-text h1 { font-size: 14px; font-weight: 600; }
+    .brand-text p { font-size: 11px; color: var(--text-tertiary); }
+    .nav-menu { padding: 14px 10px; display: flex; flex-direction: column; gap: 3px; flex: 1; }
+    .nav-label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); padding: 12px 10px 6px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+      border-radius: var(--radius-sm); color: var(--text-secondary);
+      font-size: 13px; font-weight: 500; text-decoration: none; transition: all 0.12s ease;
+    }
+    .nav-item:hover { background: var(--bg-page); color: var(--text-primary); }
+    .nav-item.active { background: var(--accent-blue-subtle); color: var(--accent-blue); font-weight: 600; }
+    .nav-item.logout { color: #d70015; }
+    .sidebar-footer { padding: 14px 16px; border-top: 1px solid var(--border-subtle); background: var(--bg-subtle); display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: #e5e5ea; color: #1d1d1f; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; flex-shrink: 0; }
+    .user-name { font-size: 12.5px; font-weight: 600; }
+    .role-badge {
+      display: inline-flex; align-items: center; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 8px; border-radius: var(--radius-pill);
+    }
+    .role-badge.super_admin { background: #f0e9fd; color: #6941c6; border: 1px solid rgba(105,65,198,0.25); }
+    .role-badge.satpam_siang, .role-badge.satpam_malam { background: var(--accent-blue-subtle); color: var(--accent-blue); border: 1px solid rgba(0,113,227,0.25); }
+    .role-badge.sampah { background: var(--badge-paid-bg); color: var(--badge-paid-text); border: 1px solid var(--badge-paid-border); }
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow-x: hidden; }
+    .top-header {
+      background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
+      position: sticky; top: 0; z-index: 10;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 32px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-tertiary); }
+    .breadcrumb .current { color: var(--text-primary); font-weight: 600; }
+    .period-chip {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-pill); padding: 5px 12px; font-size: 12px; color: var(--text-secondary);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .period-dot { width: 6px; height: 6px; background: var(--badge-unpaid-text); border-radius: 50%; }
+    .content-body { padding: 24px 32px 48px; max-width: 1200px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 20px; }
+    .household-hero {
+      background: var(--bg-card); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg); padding: 22px 26px;
+      display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-card);
+    }
+    .hero-meta h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.025em; }
+    .hero-meta p { font-size: 12.5px; color: var(--text-secondary); margin-top: 4px; line-height: 1.45; }
+    .hero-badges { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .hero-tag { font-size: 11px; background: var(--bg-page); border: 1px solid var(--border-subtle); padding: 3px 9px; border-radius: var(--radius-pill); color: var(--text-secondary); }
+    .hero-summary-box { text-align: right; padding-left: 24px; border-left: 1px solid var(--border-subtle); flex-shrink: 0; }
+    .hero-summary-box .sub { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+    .hero-summary-box .amount { font-size: 24px; font-weight: 700; margin: 2px 0 4px; letter-spacing: -0.03em; }
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .status-badge.unpaid { background: var(--badge-unpaid-bg); color: var(--badge-unpaid-text); border: 1px solid var(--badge-unpaid-border); }
+    .status-badge.paid { background: var(--badge-paid-bg); color: var(--badge-paid-text); border: 1px solid var(--badge-paid-border); }
+    .section-container { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 22px 24px; box-shadow: var(--shadow-card); }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+    .section-title-wrap h3 { font-size: 15.5px; font-weight: 600; letter-spacing: -0.02em; }
+    .section-title-wrap p { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .map-legend { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--text-secondary); }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 4px; border: 1px solid var(--border-subtle); background: #fff; }
+    .legend-dot.lunas { background: #d3f2dc; border-color: rgba(52,199,89,0.45); }
+    .legend-dot.belum { background: #ffe9cc; border-color: rgba(255,149,0,0.45); }
+    .legend-dot.kosong { background: #e5e5ea; border-color: var(--border-subtle); }
+    .map-blocks { display: flex; flex-direction: column; gap: 20px; }
+    .block-panel { background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px 18px 18px; }
+    .block-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .block-title { display: flex; align-items: baseline; gap: 8px; }
+    .block-title h4 { font-size: 14px; font-weight: 600; }
+    .block-title .lane { font-size: 11.5px; color: var(--text-tertiary); }
+    .block-summary { display: flex; gap: 8px; align-items: center; }
+    .block-progress-track { width: 120px; height: 6px; background: #e5e5ea; border-radius: var(--radius-pill); overflow: hidden; }
+    .block-progress-fill { height: 100%; background: var(--badge-paid-text); border-radius: var(--radius-pill); }
+    .block-progress-text { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+    .lane-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 0; border-top: 1px dashed var(--border-subtle); }
+    .lane-row:first-of-type { border-top: none; padding-top: 0; }
+    .lane-label { flex: 0 0 150px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-tertiary); }
+    .house-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .house-chip {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: #fff; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+      padding: 7px 12px; cursor: pointer; font-size: 12.5px; font-weight: 600;
+      color: var(--text-primary); transition: all 0.12s ease; min-width: 84px;
+      font-family: inherit;
+    }
+    .house-chip:hover { border-color: var(--accent-blue); box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+    .house-chip .chip-status { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; padding: 1px 6px; border-radius: var(--radius-pill); }
+    .house-chip.all-paid .chip-status { background: var(--badge-paid-bg); color: var(--badge-paid-text); border: 1px solid var(--badge-paid-border); }
+    .house-chip.has-unpaid .chip-status { background: var(--badge-unpaid-bg); color: var(--badge-unpaid-text); border: 1px solid var(--badge-unpaid-border); }
+    .house-chip.no-user { opacity: 0.55; cursor: default; }
+    .house-chip.no-user:hover { border-color: var(--border-subtle); transform: none; box-shadow: none; }
+    .house-chip.no-user .chip-status { background: #e5e5ea; color: var(--text-tertiary); }
+    .house-detail-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.25); backdrop-filter: blur(4px);
+      display: none; align-items: stretch; justify-content: flex-end; z-index: 90;
+    }
+    .house-detail-overlay.active { display: flex; }
+    .house-detail-panel {
+      width: 460px; max-width: 92vw; height: 100%; background: #fff;
+      border-left: 1px solid var(--border-subtle); box-shadow: -12px 0 40px rgba(0,0,0,0.10);
+      overflow-y: auto; animation: slideIn 0.2s cubic-bezier(0.16,1,0.3,1);
+      display: flex; flex-direction: column;
+    }
+    @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .house-detail-header {
+      padding: 18px 22px; border-bottom: 1px solid var(--border-subtle);
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--bg-subtle); position: sticky; top: 0; z-index: 2;
+    }
+    .house-detail-header h4 { font-size: 15px; font-weight: 600; }
+    .house-detail-header .house-sub { font-size: 11.5px; color: var(--text-tertiary); margin-top: 2px; }
+    .house-detail-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 18px; }
+    .detail-section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-tertiary); margin-bottom: 8px; }
+    .detail-kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .detail-kv .label { font-size: 10.5px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+    .detail-kv .val { font-size: 13px; font-weight: 500; margin-top: 2px; }
+    .detail-bill-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .detail-bill-table th { text-align: left; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-tertiary); padding: 8px 0; border-bottom: 1px solid var(--border-subtle); }
+    .detail-bill-table td { padding: 10px 0; border-bottom: 1px solid var(--border-subtle); }
+    .detail-bill-table td.amount { text-align: right; font-weight: 600; }
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; background: rgba(29,29,31,0.95); color: #fff;
+      padding: 10px 18px; border-radius: var(--radius-pill); font-size: 12.5px;
+      display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+      transform: translateY(80px); opacity: 0; transition: all 0.25s cubic-bezier(0.16,1,0.3,1); z-index: 120;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .demo-banner {
+      background: linear-gradient(90deg, #f0f6fd, #fbfbfd);
+      border: 1px solid rgba(0,113,227,0.2);
+      border-radius: var(--radius-md); padding: 10px 16px;
+      font-size: 11.5px; color: var(--text-secondary);
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    }
+    .demo-banner button {
+      background: none; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill);
+      padding: 3px 10px; font-size: 10.5px; cursor: pointer; color: var(--text-secondary); font-family: inherit;
+    }
+    .demo-banner button:hover { border-color: #d70015; color: #d70015; }
+    @media (max-width: 992px) {
+      .sidebar { display: none; }
+      .lane-label { flex: 0 0 100%; }
+      .household-hero { flex-direction: column; align-items: flex-start; gap: 14px; }
+      .hero-summary-box { text-align: left; padding-left: 0; border-left: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div style="display:flex; width:100%;">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand-section">
+      <div class="brand-logo">🛡️</div>
+      <div class="brand-text">
+        <h1>SIBAR</h1>
+        <p>Monitoring Petugas</p>
+      </div>
+    </div>
+    <nav class="nav-menu">
+      <div class="nav-label">Monitoring</div>
+      <a href="monitoring.html" class="nav-item active">📍 Peta Rumah (Blok &amp; Jalur)</a>
+      <div class="nav-label">Pos yang Dipantau</div>
+      <div id="scopeMenu"></div>
+      <div class="nav-label">Akun</div>
+      <a href="login.html" class="nav-item logout" onclick="sessionStorage.removeItem('sibar_demo_session')">⏻ Keluar (Logout)</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="avatar" id="avatarEl">—</div>
+      <div class="user-info" style="flex:1;">
+        <div class="user-name" id="userNameEl">—</div>
+        <div style="margin-top:3px;"><span class="role-badge" id="roleBadgeEl">—</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-wrapper">
+    <header class="top-header">
+      <div class="breadcrumb"><span>SIBAR Demo</span><span>/</span><span class="current" id="bcScope">Peta Rumah</span></div>
+      <div class="period-chip"><div class="period-dot"></div><span>Periode: <strong>Oktober 2026</strong></span></div>
+    </header>
+
+    <div class="content-body">
+      <div class="demo-banner">
+        <span>🧪 <strong>Mode Demo Statis</strong> — tanpa server/database, data tersimpan di browser Anda (localStorage).</span>
+        <button onclick="if(confirm('Reset data demo?')){SIBAR.reset();sessionStorage.clear();location.href='login.html';}">Reset Data Demo</button>
+      </div>
+
+      <section class="household-hero">
+        <div class="hero-meta">
+          <h2>Peta Status Pembayaran Warga</h2>
+          <p id="heroDesc">Memuat…</p>
+          <div class="hero-badges">
+            <span class="hero-tag" id="scopeTag">—</span>
+            <span class="hero-tag" id="totalTag">—</span>
+          </div>
+        </div>
+        <div class="hero-summary-box">
+          <div class="sub">Rekapitulasi Rumah</div>
+          <div class="amount" id="recapAmount">—</div>
+          <span class="status-badge unpaid" id="recapPill">—</span>
+        </div>
+      </section>
+
+      <section class="section-container">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <h3>Peta Rumah per Blok &amp; Jalur</h3>
+            <p>Klik nomor rumah untuk memuat detail kepala keluarga &amp; status pembayaran.</p>
+          </div>
+          <div class="map-legend">
+            <span class="legend-item"><span class="legend-dot lunas"></span> Semua Lunas</span>
+            <span class="legend-item"><span class="legend-dot belum"></span> Ada Belum Bayar</span>
+            <span class="legend-item"><span class="legend-dot kosong"></span> Belum Ada KK</span>
+          </div>
+        </div>
+        <div class="map-blocks" id="mapBlocks"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- DRAWER -->
+<div class="house-detail-overlay" id="drawerOverlay">
+  <div class="house-detail-panel">
+    <div class="house-detail-header">
+      <div>
+        <h4 id="drawerTitle">Detail Rumah</h4>
+        <div class="house-sub" id="drawerSub">—</div>
+      </div>
+      <button style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-tertiary);" onclick="closeDrawer()">&times;</button>
+    </div>
+    <div class="house-detail-body" id="drawerBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toastBox"><span id="toastText">—</span></div>
+
+<script src="sibar-demo-data.js"></script>
+<script>
+  const session = SIBAR.currentUser();
+  if (!session || session.role === 'warga') { window.location.href = 'login.html'; }
+
+  const YEAR = 2026, MONTH = 10;
+  const feeCodes = SIBAR.allowedFeeCodes(session.role); // null = semua
+  const scopeLabel = {
+    satpam_siang: 'Iuran Jaga Siang',
+    satpam_malam: 'Iuran Jaga Malam',
+    sampah: 'Iuran Sampah & Kebersihan',
+    super_admin: 'Semua Pos Iuran'
+  }[session.role] || 'Monitoring';
+
+  document.getElementById('bcScope').textContent = 'Peta Rumah — ' + scopeLabel;
+  document.getElementById('scopeTag').textContent = 'Lingkup: ' + scopeLabel;
+
+  // Sidebar user
+  document.getElementById('avatarEl').textContent = session.name.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase();
+  document.getElementById('userNameEl').textContent = session.name;
+  const rb = document.getElementById('roleBadgeEl');
+  rb.textContent = SIBAR.roleLabel(session.role);
+  rb.classList.add(session.role);
+
+  // Sidebar scope menu
+  const scopeMenu = document.getElementById('scopeMenu');
+  const allPos = [
+    { code: 'jaga_malam', label: 'Jaga Malam', icon: '🌙' },
+    { code: 'jaga_siang', label: 'Jaga Siang', icon: '☀️' },
+    { code: 'sampah', label: 'Sampah & Kebersihan', icon: '🗑️' }
+  ];
+  const visiblePos = feeCodes ? allPos.filter(p => feeCodes.includes(p.code)) : allPos;
+  scopeMenu.innerHTML = visiblePos.map(p =>
+    `<a href="#" class="nav-item" onclick="event.preventDefault()">${p.icon} ${p.label}</a>`
+  ).join('');
+
+  function getFilteredBills(db) {
+    let bills = db.bills.filter(b => b.year === YEAR && b.month === MONTH);
+    if (feeCodes) {
+      const feeIds = db.fee_types.filter(f => feeCodes.includes(f.code)).map(f => f.id);
+      bills = bills.filter(b => feeIds.includes(b.fee_type_id));
+    }
+    return bills;
+  }
+
+  function render() {
+    const db = SIBAR.load();
+    const kkByHouse = {};
+    db.users.filter(u => u.role === 'warga' && u.house_id).forEach(u => { kkByHouse[u.house_id] = u; });
+
+    const octBills = getFilteredBills(db);
+
+    let lunas = 0, belum = 0;
+    db.houses.forEach(h => {
+      if (!kkByHouse[h.id]) return;
+      const bs = octBills.filter(b => b.house_id === h.id);
+      if (bs.length === 0) return;
+      if (bs.every(b => b.status === 'paid')) lunas++; else belum++;
+    });
+
+    document.getElementById('heroDesc').innerHTML =
+      `Anda masuk sebagai <strong>${SIBAR.roleLabel(session.role)}</strong>. Klik nomor rumah untuk melihat identitas kepala keluarga dan rincian status pembayaran ${scopeLabel.toLowerCase()} bulan Oktober 2026.`;
+    document.getElementById('totalTag').textContent = 'Total Rumah: ' + db.houses.length;
+    document.getElementById('recapAmount').innerHTML = `${lunas} <span style="font-size:14px; color:var(--text-tertiary); font-weight:500;">Lunas</span> · ${belum} <span style="font-size:14px; color:var(--text-tertiary); font-weight:500;">Belum</span>`;
+    const rp = document.getElementById('recapPill');
+    rp.textContent = belum > 0 ? belum + ' rumah perlu ditagih' : 'Semua rumah lunas';
+    rp.className = 'status-badge ' + (belum > 0 ? 'unpaid' : 'paid');
+
+    // Group per blok -> jalur
+    const blocks = {};
+    db.houses.forEach(h => {
+      if (!blocks[h.block]) blocks[h.block] = {};
+      if (!blocks[h.block][h.lane]) blocks[h.block][h.lane] = [];
+      blocks[h.block][h.lane].push(h);
+    });
+
+    const container = document.getElementById('mapBlocks');
+    container.innerHTML = '';
+
+    Object.keys(blocks).sort().forEach(blockName => {
+      const lanes = blocks[blockName];
+      const laneNames = Object.keys(lanes);
+
+      // Statistik blok
+      let bTotal = 0, bPaid = 0;
+      Object.values(lanes).flat().forEach(h => {
+        if (!kkByHouse[h.id]) return;
+        const bs = octBills.filter(b => b.house_id === h.id);
+        if (bs.length === 0) return;
+        bTotal++;
+        if (bs.every(b => b.status === 'paid')) bPaid++;
+      });
+      const bPct = bTotal > 0 ? Math.round((bPaid / bTotal) * 100) : 0;
+
+      const panel = document.createElement('div');
+      panel.className = 'block-panel';
+      let panelHTML = `
+        <div class="block-panel-header">
+          <div class="block-title">
+            <h4>Blok ${blockName}</h4>
+            <span class="lane">${laneNames.length === 1 ? laneNames[0] : laneNames.length + ' jalur'}</span>
+          </div>
+          <div class="block-summary">
+            <div class="block-progress-track"><div class="block-progress-fill" style="width:${bPct}%;"></div></div>
+            <span class="block-progress-text">${bPaid}/${bTotal} lunas (${bPct}%)</span>
+          </div>
+        </div>`;
+
+      laneNames.forEach(laneName => {
+        panelHTML += `<div class="lane-row">`;
+        if (laneNames.length > 1) panelHTML += `<div class="lane-label">${laneName}</div>`;
+        panelHTML += `<div class="house-chips">`;
+
+        lanes[laneName].forEach(h => {
+          const kk = kkByHouse[h.id];
+          if (!kk) {
+            panelHTML += `<span class="house-chip no-user" title="Belum ada akun KK"><span>🏠</span><span>No. ${h.number}</span><span class="chip-status">Kosong</span></span>`;
+          } else {
+            const bs = octBills.filter(b => b.house_id === h.id);
+            const unpaid = bs.filter(b => b.status === 'unpaid').length;
+            const isAllPaid = bs.length > 0 && unpaid === 0;
+            panelHTML += `<button class="house-chip ${isAllPaid ? 'all-paid' : 'has-unpaid'}" data-house="${h.id}">
+              <span>${isAllPaid ? '🏡' : '🏚️'}</span><span>No. ${h.number}</span>
+              <span class="chip-status">${isAllPaid ? 'Lunas' : unpaid + ' Belum'}</span>
+            </button>`;
+          }
+        });
+
+        panelHTML += `</div></div>`;
+      });
+
+      panel.innerHTML = panelHTML;
+      container.appendChild(panel);
+    });
+
+    // Bind chip clicks
+    container.querySelectorAll('.house-chip[data-house]').forEach(btn => {
+      btn.addEventListener('click', () => openDrawer(parseInt(btn.dataset.house, 10)));
+    });
+  }
+
+  function openDrawer(houseId) {
+    const db = SIBAR.load();
+    const house = db.houses.find(h => h.id === houseId);
+    const kk = db.users.find(u => u.role === 'warga' && u.house_id === houseId);
+    const octBills = getFilteredBills(db).filter(b => b.house_id === houseId);
+
+    document.getElementById('drawerTitle').textContent = `Rumah Blok ${house.block} No. ${house.number}`;
+    document.getElementById('drawerSub').textContent = `${house.lane} • Periode Oktober 2026`;
+
+    const paid = octBills.filter(b => b.status === 'paid').length;
+    const unpaid = octBills.filter(b => b.status === 'unpaid').length;
+    const total = octBills.length;
+    const totalAmount = octBills.reduce((s, b) => s + b.amount, 0);
+
+    const pill = total === 0
+      ? '<span class="status-badge" style="background:#e5e5ea; color:var(--text-tertiary);">Belum Ada Tagihan</span>'
+      : (unpaid === 0
+          ? '<span class="status-badge paid">● Lunas Semua</span>'
+          : `<span class="status-badge unpaid">${unpaid} Pos Belum Bayar</span>`);
+
+    let billRows = octBills.map(b => {
+      const fee = SIBAR.feeById(db, b.fee_type_id);
+      return `<tr>
+        <td>${fee.icon} ${fee.name}</td>
+        <td class="amount">${SIBAR.rupiah(b.amount)}</td>
+        <td style="text-align:right;">${b.status === 'paid'
+          ? '<span class="status-badge paid">Lunas</span>'
+          : '<span class="status-badge unpaid">Belum</span>'}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('drawerBody').innerHTML = `
+      <div>
+        <div class="detail-section-title">Identitas Kepala Keluarga</div>
+        <div class="detail-kv-grid">
+          <div class="detail-kv"><div class="label">Nama KK</div><div class="val">${kk.name}</div></div>
+          <div class="detail-kv"><div class="label">No. HP</div><div class="val">${kk.phone}</div></div>
+          <div class="detail-kv"><div class="label">Akun</div><div class="val">${kk.username}</div></div>
+          <div class="detail-kv"><div class="label">Status Huni</div><div class="val">${house.status_huni.charAt(0).toUpperCase() + house.status_huni.slice(1)}</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="detail-section-title">Rincian Tagihan — ${scopeLabel}</div>
+        <div style="margin-bottom:10px;">${pill}</div>
+        <table class="detail-bill-table">
+          <thead><tr><th>Pos Iuran</th><th style="text-align:right;">Nominal</th><th style="text-align:right;">Status</th></tr></thead>
+          <tbody>${billRows}</tbody>
+        </table>
+        <div style="display:flex; justify-content:space-between; padding:10px 0; font-size:13px; font-weight:600; border-bottom:1px dashed var(--border-subtle);">
+          <span>Total Periode Ini</span><span>${SIBAR.rupiah(totalAmount)}</span>
+        </div>
+      </div>
+      <div style="background:var(--bg-subtle); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:12px 14px; font-size:11.5px; color:var(--text-secondary); line-height:1.5;">
+        Petugas dapat mencatat pembayaran tunai langsung di lapangan. Konfirmasi pelunasan resmi tetap melalui akun warga atau Super Admin.
+      </div>`;
+
+    document.getElementById('drawerOverlay').classList.add('active');
+  }
+
+  function closeDrawer() { document.getElementById('drawerOverlay').classList.remove('active'); }
+  document.getElementById('drawerOverlay').addEventListener('click', function (e) { if (e.target === this) closeDrawer(); });
+
+  render();
+</script>
+
+</body>
+</html>

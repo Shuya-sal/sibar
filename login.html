@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masuk — SIBAR (Demo Statis)</title>
+  <style>
+    :root {
+      --bg-page: #f5f5f7;
+      --bg-card: #ffffff;
+      --bg-subtle: #fbfbfd;
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --text-primary: #1d1d1f;
+      --text-secondary: #6e6e73;
+      --text-tertiary: #86868b;
+      --accent-blue: #0071e3;
+      --accent-blue-hover: #0077ed;
+      --accent-blue-subtle: #f0f6fd;
+      --badge-unpaid-bg: #fff8eb;
+      --badge-unpaid-text: #b25e00;
+      --badge-unpaid-border: rgba(255, 149, 0, 0.22);
+      --badge-paid-bg: #edf8f0;
+      --badge-paid-text: #1b7a37;
+      --badge-paid-border: rgba(52, 199, 89, 0.22);
+      --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-pill: 980px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      letter-spacing: -0.014em;
+    }
+    .auth-card {
+      width: 100%; max-width: 400px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      box-shadow: var(--shadow-card);
+    }
+    .auth-header { text-align: center; margin-bottom: 24px; }
+    .logo-badge {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--text-primary); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-bottom: 12px;
+    }
+    .auth-header h2 { font-size: 20px; font-weight: 600; }
+    .auth-header p { font-size: 12.5px; color: var(--text-secondary); margin-top: 4px; }
+    .auth-alert {
+      padding: 10px 14px; border-radius: var(--radius-sm); font-size: 12px; margin-bottom: 14px;
+      background: #fff2f2; color: #d70015; border: 1px solid rgba(255, 59, 48, 0.2);
+      display: none;
+    }
+    .auth-alert.show { display: block; }
+    .auth-form { display: flex; flex-direction: column; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 12px; font-weight: 500; }
+    .form-control {
+      width: 100%; padding: 10px 14px;
+      border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+      font-size: 13px; font-family: inherit; background: var(--bg-subtle); color: var(--text-primary);
+      outline: none; transition: border-color 0.12s ease;
+    }
+    .form-control:focus { border-color: var(--accent-blue); background: #fff; }
+    .btn-auth-submit {
+      width: 100%; padding: 10px; background: var(--accent-blue); color: #fff;
+      border: none; border-radius: var(--radius-pill); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: background 0.12s ease; margin-top: 8px;
+    }
+    .btn-auth-submit:hover { background: var(--accent-blue-hover); }
+    .auth-hint {
+      margin-top: 20px; padding: 12px; background: var(--bg-subtle);
+      border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);
+      font-size: 11.5px; color: var(--text-secondary); line-height: 1.6;
+    }
+    .auth-hint code {
+      font-family: ui-monospace, Menlo, monospace; font-size: 11px;
+      background: var(--bg-page); padding: 1px 5px; border-radius: 4px;
+      cursor: pointer; transition: background 0.12s ease;
+    }
+    .auth-hint code:hover { background: var(--accent-blue-subtle); color: var(--accent-blue); }
+    .demo-note {
+      margin-top: 16px; font-size: 11px; color: var(--text-tertiary);
+      text-align: center; max-width: 400px; line-height: 1.5;
+    }
+    .demo-note a { color: var(--accent-blue); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<div class="auth-card">
+  <div class="auth-header">
+    <div class="logo-badge">🏠</div>
+    <h2>SIBAR</h2>
+    <p>Sistem Informasi Iuran Keamanan &amp; Sampah — <strong>Demo Statis</strong></p>
+  </div>
+
+  <div class="auth-alert" id="authAlert">Username atau password salah. Gunakan salah satu akun demo di bawah.</div>
+
+  <form class="auth-form" id="loginForm" autocomplete="off">
+    <div class="form-group">
+      <label for="username">Akun / Username</label>
+      <input type="text" id="username" class="form-control" placeholder="Contoh: b3-12 atau superadmin" required>
+    </div>
+    <div class="form-group">
+      <label for="password">Kata Sandi</label>
+      <input type="password" id="password" class="form-control" placeholder="Masukkan password" required>
+    </div>
+    <button type="submit" class="btn-auth-submit">Masuk ke Dashboard</button>
+  </form>
+
+  <div class="auth-hint">
+    <strong>Akun Demo (klik untuk isi otomatis — password: <code>password123</code>):</strong><br>
+    • Warga (KK): <code class="quick-login" data-u="b3-12">b3-12</code>, <code class="quick-login" data-u="a1-05">a1-05</code>, <code class="quick-login" data-u="c2-09">c2-09</code><br>
+    • Satpam Jaga Siang: <code class="quick-login" data-u="satpam_siang">satpam_siang</code><br>
+    • Satpam Jaga Malam: <code class="quick-login" data-u="satpam_malam">satpam_malam</code><br>
+    • Petugas Sampah: <code class="quick-login" data-u="sampah">sampah</code><br>
+    • Super Admin (akses semua): <code class="quick-login" data-u="superadmin">superadmin</code>
+  </div>
+</div>
+
+<p class="demo-note">
+  Ini versi demo statis tanpa server/database — data disimpan di localStorage browser.
+  Versi lengkap PHP + MySQL tersedia di <a href="https://github.com/Shuya-sal/sibar">repositori utama</a>.
+</p>
+
+<script>
+  // Seed akun demo (sekali saja)
+  if (!localStorage.getItem('sibar_demo_users')) {
+    localStorage.setItem('sibar_demo_users', JSON.stringify([
+      { username: 'b3-12', password: 'password123', role: 'warga', name: 'Bpk. Hendra Pratama' },
+      { username: 'a1-05', password: 'password123', role: 'warga', name: 'Bpk. Budi Santoso' },
+      { username: 'c2-09', password: 'password123', role: 'warga', name: 'Bpk. Joko Susilo' },
+      { username: 'satpam_siang', password: 'password123', role: 'satpam_siang', name: 'Bpk. Tono Wibowo' },
+      { username: 'satpam_malam', password: 'password123', role: 'satpam_malam', name: 'Bpk. Slamet Riyadi' },
+      { username: 'sampah', password: 'password123', role: 'sampah', name: 'Bpk. Darma Putra' },
+      { username: 'superadmin', password: 'password123', role: 'super_admin', name: 'Admin RT 04' }
+    ]));
+  }
+
+  const alertBox = document.getElementById('authAlert');
+
+  document.querySelectorAll('.quick-login').forEach(el => {
+    el.addEventListener('click', () => {
+      document.getElementById('username').value = el.dataset.u;
+      document.getElementById('password').value = 'password123';
+      alertBox.classList.remove('show');
+    });
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const u = document.getElementById('username').value.trim().toLowerCase();
+    const p = document.getElementById('password').value;
+    const users = JSON.parse(localStorage.getItem('sibar_demo_users') || '[]');
+    const found = users.find(x => x.username === u && x.password === p);
+
+    if (found) {
+      sessionStorage.setItem('sibar_demo_session', JSON.stringify(found));
+      window.location.href = found.role === 'warga' ? 'dashboard.html' : 'monitoring.html';
+      return false;
+    } else {
+      alertBox.classList.add('show');
+    }
+  });
+
+  // Hindari navigasi GET saat form disubmit via Enter
+  document.getElementById('loginForm').setAttribute('action', 'javascript:void(0)');
+</script>
+
+</body>
+</html>

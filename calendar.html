@@ -745,12 +745,25 @@
     });
   }
 
+  // selectedHouseId = 0 berarti "Semua Unit dalam Komplek"
   function refreshHouseSelect(db) {
     const sel = document.getElementById('houseSelect');
     if (!sel) return;
+    const user = SibarData.currentUser();
+    const isWarga = user && user.role === 'warga';
     let houses = db.houses.filter(h => (h.complex_id || 1) === selectedComplexId);
     if (selectedBlock !== 'all') houses = houses.filter(h => h.block === selectedBlock);
     sel.innerHTML = '';
+
+    // Opsi "Semua Unit" hanya untuk admin/petugas
+    if (!isWarga) {
+      const allOpt = document.createElement('option');
+      allOpt.value = '0';
+      allOpt.textContent = `📋 Semua Unit (${houses.length} rumah)`;
+      if (selectedHouseId === 0) allOpt.selected = true;
+      sel.appendChild(allOpt);
+    }
+
     houses.forEach(h => {
       const kk = db.users.find(u => u.house_id === h.id && u.role === 'warga');
       const ownerName = h.owner || (kk ? kk.name : 'Kosong');
@@ -760,9 +773,9 @@
       if (h.id === selectedHouseId) opt.selected = true;
       sel.appendChild(opt);
     });
-    // Kalau selectedHouseId tidak ada di list saat ini, ambil yang pertama
-    if (houses.length && !houses.find(h => h.id === selectedHouseId)) {
-      selectedHouseId = houses[0].id;
+    // Kalau selectedHouseId tidak ada di list dan bukan 0, ambil yang pertama
+    if (selectedHouseId !== 0 && houses.length && !houses.find(h => h.id === selectedHouseId)) {
+      selectedHouseId = isWarga ? (user.house_id || houses[0].id) : 0;
     }
     renderCalendar();
   }
@@ -788,6 +801,66 @@
 
   function renderCalendar() {
     const db = SibarData.load();
+    const allMonths = SibarData.MONTHS;
+
+    // ===== MODE SEMUA UNIT =====
+    if (selectedHouseId === 0) {
+      let houses = db.houses.filter(h => (h.complex_id || 1) === selectedComplexId);
+      if (selectedBlock !== 'all') houses = houses.filter(h => h.block === selectedBlock);
+
+      document.getElementById('heroTitle').innerText = `Rekap Komplek — ${currentYear}`;
+      document.getElementById('heroDesc').innerHTML = `<strong>${houses.length} unit</strong> terdaftar, ${selectedBlock === 'all' ? 'semua blok' : 'Blok ' + selectedBlock}.`;
+      document.getElementById('tagUnit').innerText = `${houses.length} Unit`;
+      document.getElementById('tagHuni').innerText = `Komplek ${selectedComplexId}`;
+
+      // Hitung KPI gabungan semua unit
+      let totDue=0, totPaid=0;
+      houses.forEach(h => {
+        db.bills.filter(b => b.house_id===h.id && b.year===currentYear).forEach(b => {
+          totDue += b.amount;
+          if (b.status==='paid') totPaid += b.amount;
+        });
+      });
+      const totUnpaid = totDue - totPaid;
+      const pct = totDue > 0 ? Math.round(totPaid/totDue*100) : 0;
+      document.getElementById('kpiTotalDue').innerText = 'Rp ' + totDue.toLocaleString('id-ID');
+      document.getElementById('kpiTotalPaid').innerText = 'Rp ' + totPaid.toLocaleString('id-ID');
+      document.getElementById('kpiTotalUnpaid').innerText = 'Rp ' + totUnpaid.toLocaleString('id-ID');
+      document.getElementById('kpiCompliance').innerText = pct + '%';
+
+      // Render grid ringkasan per unit
+      const grid = document.getElementById('monthGrid');
+      grid.innerHTML = '';
+      houses.forEach(h => {
+        const kk = db.users.find(u => u.house_id===h.id && u.role==='warga');
+        const nm = h.owner || (kk ? kk.name : 'Kosong');
+        let hDue=0, hPaid=0;
+        db.bills.filter(b => b.house_id===h.id && b.year===currentYear).forEach(b => {
+          hDue += b.amount;
+          if (b.status==='paid') hPaid += b.amount;
+        });
+        const hPct = hDue > 0 ? Math.round(hPaid/hDue*100) : 0;
+        const lunas = hPaid >= hDue && hDue > 0;
+        const card = document.createElement('div');
+        card.className = 'month-card' + (lunas ? ' paid' : '');
+        card.innerHTML = `
+          <div class="month-card-header">
+            <span class="month-name">Blok ${h.block}/${h.number}</span>
+            <span class="month-badge ${lunas ? 'badge-paid' : 'badge-unpaid'}">${lunas ? '✓ Lunas' : 'Tunggak'}</span>
+          </div>
+          <div style="font-size:11px; color:var(--text-secondary); margin-bottom:6px;">${nm}</div>
+          <div style="font-size:12px;">Lunas: <strong>Rp ${hPaid.toLocaleString('id-ID')}</strong> / Rp ${hDue.toLocaleString('id-ID')}</div>
+          <div style="margin-top:6px; background:#f0f0f5; border-radius:4px; height:5px; overflow:hidden;">
+            <div style="width:${hPct}%; background:${lunas?'#34c759':'#0071e3'}; height:100%;"></div>
+          </div>
+          <div style="font-size:11px; color:var(--text-tertiary); margin-top:3px;">${hPct}% kepatuhan</div>
+        `;
+        grid.appendChild(card);
+      });
+      return;
+    }
+
+    // ===== MODE SINGLE UNIT (default) =====
     const house = db.houses.find(h => h.id === selectedHouseId) || db.houses[0];
     const feeMap = {};
     db.fee_types.forEach(f => feeMap[f.id] = f);

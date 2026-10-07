@@ -946,6 +946,33 @@
           </div>
         </div>
 
+        <!-- Komplek & Koordinat (semua role) -->
+        <div class="house-subform" id="addComplexSection" style="background:rgba(0,113,227,0.04); border:1px solid rgba(0,113,227,0.15);">
+          <div style="font-size:11px; font-weight:600; text-transform:uppercase; color:#0071e3; letter-spacing:0.04em; margin-bottom:6px;">
+            📍 Komplek & Lokasi
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label>Komplek Perumahan</label>
+            <select id="add_complex_id" class="form-control" onchange="onAddComplexChange(this.value)">
+              <option value="1">Komplek Graha Asri RT 04</option>
+              <option value="2">Komplek Bukit Indah Asri RT 05</option>
+            </select>
+          </div>
+          <div id="addKoordSection" style="display:none;">
+            <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:4px;">Koordinat GPS titik tugas (khusus Satpam & Sampah)</div>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>Latitude</label>
+                <input type="number" step="0.000001" id="add_lat" class="form-control" placeholder="-6.208763">
+              </div>
+              <div class="form-group">
+                <label>Longitude</label>
+                <input type="number" step="0.000001" id="add_lng" class="form-control" placeholder="106.845599">
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Bagian Rumah Khusus Warga -->
         <div id="wargaHouseSection" class="house-subform">
           <div style="font-size:11px; font-weight:600; text-transform:uppercase; color:var(--text-tertiary); letter-spacing:0.04em;">
@@ -1043,6 +1070,33 @@
               <option value="sampah">Petugas Sampah</option>
               <option value="super_admin">Super Admin</option>
             </select>
+          </div>
+        </div>
+
+        <!-- Komplek & Koordinat -->
+        <div class="house-subform" style="background:rgba(0,113,227,0.04); border:1px solid rgba(0,113,227,0.15);">
+          <div style="font-size:11px; font-weight:600; text-transform:uppercase; color:#0071e3; letter-spacing:0.04em; margin-bottom:6px;">
+            📍 Komplek & Lokasi
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label>Komplek Perumahan</label>
+            <select id="edit_complex_id" class="form-control">
+              <option value="1">Komplek Graha Asri RT 04</option>
+              <option value="2">Komplek Bukit Indah Asri RT 05</option>
+            </select>
+          </div>
+          <div id="editKoordSection" style="display:none;">
+            <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:4px;">Koordinat GPS titik tugas (khusus Satpam & Sampah)</div>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>Latitude</label>
+                <input type="number" step="0.000001" id="edit_lat" class="form-control" placeholder="-6.208763">
+              </div>
+              <div class="form-group">
+                <label>Longitude</label>
+                <input type="number" step="0.000001" id="edit_lng" class="form-control" placeholder="106.845599">
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1323,23 +1377,37 @@
     selectedAddRole = role;
     document.querySelectorAll('.role-radio-btn').forEach(btn => {
       const radio = btn.querySelector('input');
-      if (radio.value === role) {
-        btn.classList.add('selected');
-        radio.checked = true;
-      } else {
-        btn.classList.remove('selected');
-      }
+      if (radio.value === role) { btn.classList.add('selected'); radio.checked = true; }
+      else btn.classList.remove('selected');
     });
 
     const houseSec = document.getElementById('wargaHouseSection');
-    if (role === 'warga') {
-      houseSec.style.display = 'flex';
-      document.getElementById('add_block').required = true;
-      document.getElementById('add_number').required = true;
-    } else {
-      houseSec.style.display = 'none';
-      document.getElementById('add_block').required = false;
-      document.getElementById('add_number').required = false;
+    const koordSec = document.getElementById('addKoordSection');
+    const isWarga = role === 'warga';
+    const isFieldOfficer = ['satpam_siang','satpam_malam','sampah'].includes(role);
+
+    houseSec.style.display = isWarga ? 'flex' : 'none';
+    document.getElementById('add_block').required = isWarga;
+    document.getElementById('add_number').required = isWarga;
+
+    // Koordinat GPS hanya untuk satpam & sampah
+    koordSec.style.display = isFieldOfficer ? 'block' : 'none';
+    if (isFieldOfficer) {
+      // Isi koordinat default dari komplek yang dipilih
+      onAddComplexChange(document.getElementById('add_complex_id').value);
+    }
+  }
+
+  function onAddComplexChange(cxId) {
+    const defaults = {
+      '1': { lat: -6.208763, lng: 106.845599 },
+      '2': { lat: -6.215500, lng: 106.852000 }
+    };
+    const d = defaults[String(cxId)] || defaults['1'];
+    const role = selectedAddRole;
+    if (['satpam_siang','satpam_malam','sampah'].includes(role)) {
+      if (!document.getElementById('add_lat').value) document.getElementById('add_lat').value = d.lat;
+      if (!document.getElementById('add_lng').value) document.getElementById('add_lng').value = d.lng;
     }
   }
 
@@ -1362,6 +1430,9 @@
       name: document.getElementById('add_name').value.trim(),
       phone: document.getElementById('add_phone').value.trim(),
       username: document.getElementById('add_username').value.trim(),
+      complex_id: Number(document.getElementById('add_complex_id').value || 1),
+      latitude: parseFloat(document.getElementById('add_lat').value) || null,
+      longitude: parseFloat(document.getElementById('add_lng').value) || null,
       house_choice: document.querySelector('input[name="add_house_choice"]:checked')?.value || 'new',
       block: document.getElementById('add_block').value.trim(),
       number: document.getElementById('add_number').value.trim(),
@@ -1398,6 +1469,19 @@
 
     onEditRoleChanged(user.role);
 
+    // Isi komplek
+    const cx = document.getElementById('edit_complex_id');
+    if (cx) cx.value = String(user.complex_id || (house ? (house.complex_id || 1) : 1));
+
+    // Isi koordinat untuk petugas
+    const isOfficer = ['satpam_siang','satpam_malam','sampah'].includes(user.role);
+    if (isOfficer) {
+      const elat = document.getElementById('edit_lat');
+      const elng = document.getElementById('edit_lng');
+      if (elat) elat.value = user.latitude || '';
+      if (elng) elng.value = user.longitude || '';
+    }
+
     if (user.role === 'warga' && house) {
       document.getElementById('edit_block').value = house.block || '';
       document.getElementById('edit_number').value = house.number || '';
@@ -1410,6 +1494,9 @@
 
   function onEditRoleChanged(role) {
     document.getElementById('editHouseSection').style.display = (role === 'warga') ? 'flex' : 'none';
+    const koord = document.getElementById('editKoordSection');
+    const isOfficer = ['satpam_siang','satpam_malam','sampah'].includes(role);
+    if (koord) koord.style.display = isOfficer ? 'block' : 'none';
   }
 
   function closeEditModal() {
@@ -1424,6 +1511,9 @@
       phone: document.getElementById('edit_phone').value.trim(),
       username: document.getElementById('edit_username').value.trim(),
       role: document.getElementById('edit_role').value,
+      complex_id: Number(document.getElementById('edit_complex_id')?.value || 1),
+      latitude: parseFloat(document.getElementById('edit_lat')?.value) || null,
+      longitude: parseFloat(document.getElementById('edit_lng')?.value) || null,
       block: document.getElementById('edit_block').value.trim(),
       number: document.getElementById('edit_number').value.trim(),
       lane: document.getElementById('edit_lane').value.trim(),

@@ -6,6 +6,12 @@ require_once __DIR__ . '/config/auth.php';
 $user = requireAuth();
 $db = getDB();
 
+// Role warga tetap di dashboard warga; petugas & super admin diarahkan ke peta monitoring
+if (canAccessMonitoring($user)) {
+    header('Location: monitoring.php');
+    exit;
+}
+
 $currentYear = 2026;
 $currentMonth = 10;
 $monthNames = [

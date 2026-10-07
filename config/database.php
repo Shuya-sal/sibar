@@ -1,6 +1,7 @@
 <?php
 // config/database.php
 // Konfigurasi Database SIBAR (XAMPP MySQL dengan fallback SQLite)
+// Roles: warga, satpam_siang, satpam_malam, sampah, super_admin
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -40,7 +41,7 @@ function getDB(): PDO {
             initMySQLSchema($pdo);
             return $pdo;
         } catch (PDOException $ex) {
-            // Jika MySQL tidak berjalan sama sekali (misal pengujian lokal tanpa service mysqld),
+            // Jika MySQL tidak berjalan sama sekali,
             // fallback ke SQLite agar aplikasi tetap 100% jalan langsung tanpa error mati
             return getSQLiteFallback();
         }
@@ -88,6 +89,7 @@ function initSQLiteSchema(PDO $pdo): void {
       block TEXT NOT NULL,
       number TEXT NOT NULL,
       address TEXT NOT NULL,
+      lane TEXT DEFAULT 'Jalur Utama',
       status_huni TEXT DEFAULT 'tetap',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(block, number)
@@ -95,14 +97,14 @@ function initSQLiteSchema(PDO $pdo): void {
 
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      house_id INTEGER NOT NULL,
+      house_id INTEGER,
       username TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
       full_name TEXT NOT NULL,
       phone TEXT NOT NULL,
       role TEXT DEFAULT 'warga',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (house_id) REFERENCES houses(id) ON DELETE CASCADE
+      FOREIGN KEY (house_id) REFERENCES houses(id) ON DELETE SET NULL
     );
 
     CREATE TABLE IF NOT EXISTS fee_types (
@@ -140,17 +142,29 @@ function initSQLiteSchema(PDO $pdo): void {
       FOREIGN KEY (bill_id) REFERENCES bills(id) ON DELETE CASCADE
     );
 
-    -- Seed Rumah
-    INSERT OR IGNORE INTO houses (id, block, number, address, status_huni) VALUES
-    (1, 'B3', '12', 'Jl. Cempaka Raya No. 12, RT 04 / RW 08', 'tetap'),
-    (2, 'A1', '05', 'Jl. Cempaka Raya No. 05, RT 04 / RW 08', 'tetap'),
-    (3, 'C2', '08', 'Jl. Cempaka Raya No. 08, RT 04 / RW 08', 'kontrak');
+    -- Seed Rumah (3 Blok / Jalur)
+    INSERT OR IGNORE INTO houses (id, block, number, address, lane, status_huni) VALUES
+    (1, 'A1', '05', 'Jl. Cempaka Raya No. 05, RT 04 / RW 08', 'Jalur Utama Timur',  'tetap'),
+    (2, 'A1', '06', 'Jl. Cempaka Raya No. 06, RT 04 / RW 08', 'Jalur Utama Timur',  'kontrak'),
+    (3, 'B3', '11', 'Jl. Cempaka Raya No. 11, RT 04 / RW 08', 'Jalur Utama Tengah', 'tetap'),
+    (4, 'B3', '12', 'Jl. Cempaka Raya No. 12, RT 04 / RW 08', 'Jalur Utama Tengah', 'tetap'),
+    (5, 'B3', '13', 'Jl. Cempaka Raya No. 13, RT 04 / RW 08', 'Jalur Utama Tengah', 'tetap'),
+    (6, 'C2', '08', 'Jl. Cempaka Raya No. 08, RT 04 / RW 08', 'Jalur Selatan',      'kontrak'),
+    (7, 'C2', '09', 'Jl. Cempaka Raya No. 09, RT 04 / RW 08', 'Jalur Selatan',      'tetap');
 
     -- Seed User (Password: password123)
     INSERT OR IGNORE INTO users (id, house_id, username, password_hash, full_name, phone, role) VALUES
-    (1, 1, 'b3-12', '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Bpk. Hendra Pratama', '081234567890', 'warga'),
-    (2, 2, 'a1-05', '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Bpk. Budi Santoso', '081298765432', 'warga'),
-    (3, 3, 'c2-08', '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Ibu Siti Rahma', '081345678901', 'warga');
+    (1, 1, 'a1-05', '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Bpk. Budi Santoso',   '081298765432', 'warga'),
+    (2, 2, 'a1-06', '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Ibu Dewi Lestari',    '081311223344', 'warga'),
+    (3, 3, 'b3-11', '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Bpk. Agus Wijaya',    '081355667788', 'warga'),
+    (4, 4, 'b3-12', '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Bpk. Hendra Pratama', '081234567890', 'warga'),
+    (5, 5, 'b3-13', '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Bpk. Rudi Hartono',   '081399887766', 'warga'),
+    (6, 6, 'c2-08', '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Ibu Siti Rahma',      '081345678901', 'warga'),
+    (7, 7, 'c2-09', '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Bpk. Joko Susilo',    '081377665544', 'warga'),
+    (8, NULL, 'satpam_siang', '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Bpk. Tono Wibowo',   '081500011122', 'satpam_siang'),
+    (9, NULL, 'satpam_malam', '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Bpk. Slamet Riyadi', '081500033344', 'satpam_malam'),
+    (10, NULL, 'sampah',      '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Bpk. Darma Putra',   '081500055566', 'sampah'),
+    (11, NULL, 'superadmin',  '$2y$10$8HwqKjVaLyLof8uQRvZBWeAeWqpK2DOh4CLCxN9ZJPO7fmNDRbyhy', 'Admin RT 04',        '081500077788', 'super_admin');
 
     -- Seed Pos Iuran
     INSERT OR IGNORE INTO fee_types (id, code, name, amount, icon, description) VALUES
@@ -158,22 +172,41 @@ function initSQLiteSchema(PDO $pdo): void {
     (2, 'jaga_siang', 'Iuran Jaga Siang', 40000.00, '☀️', 'Penjagaan gerbang utama (06:00 - 18:00), penerimaan kurir paket, dan patroli siang.'),
     (3, 'sampah', 'Iuran Sampah & Kebersihan', 35000.00, '🗑️', 'Pengangkutan sampah rumah tangga 3x seminggu ke TPA dan pembersihan gorong-gorong.');
 
-    -- Seed Tagihan Lunas Juli, Agustus, September 2026
+    -- Seed Tagihan B3-12 (house 4) Juli - Oktober 2026
     INSERT OR IGNORE INTO bills (id, house_id, fee_type_id, period_year, period_month, amount, status, due_date) VALUES
-    (1, 1, 1, 2026, 7, 50000.00, 'paid', '2026-07-15'),
-    (2, 1, 2, 2026, 7, 40000.00, 'paid', '2026-07-15'),
-    (3, 1, 3, 2026, 7, 35000.00, 'paid', '2026-07-15'),
-    (4, 1, 1, 2026, 8, 50000.00, 'paid', '2026-08-15'),
-    (5, 1, 2, 2026, 8, 40000.00, 'paid', '2026-08-15'),
-    (6, 1, 3, 2026, 8, 35000.00, 'paid', '2026-08-15'),
-    (7, 1, 1, 2026, 9, 50000.00, 'paid', '2026-09-15'),
-    (8, 1, 2, 2026, 9, 40000.00, 'paid', '2026-09-15'),
-    (9, 1, 3, 2026, 9, 35000.00, 'paid', '2026-09-15'),
+    (1, 4, 1, 2026, 7, 50000.00, 'paid', '2026-07-15'),
+    (2, 4, 2, 2026, 7, 40000.00, 'paid', '2026-07-15'),
+    (3, 4, 3, 2026, 7, 35000.00, 'paid', '2026-07-15'),
+    (4, 4, 1, 2026, 8, 50000.00, 'paid', '2026-08-15'),
+    (5, 4, 2, 2026, 8, 40000.00, 'paid', '2026-08-15'),
+    (6, 4, 3, 2026, 8, 35000.00, 'paid', '2026-08-15'),
+    (7, 4, 1, 2026, 9, 50000.00, 'paid', '2026-09-15'),
+    (8, 4, 2, 2026, 9, 40000.00, 'paid', '2026-09-15'),
+    (9, 4, 3, 2026, 9, 35000.00, 'paid', '2026-09-15'),
+    (19, 4, 1, 2026, 10, 50000.00, 'unpaid', '2026-10-15'),
+    (20, 4, 2, 2026, 10, 40000.00, 'unpaid', '2026-10-15'),
+    (21, 4, 3, 2026, 10, 35000.00, 'unpaid', '2026-10-15');
 
-    -- Seed Tagihan Belum Dibayar Bulan Berjalan (Oktober 2026)
-    (10, 1, 1, 2026, 10, 50000.00, 'unpaid', '2026-10-15'),
-    (11, 1, 2, 2026, 10, 40000.00, 'unpaid', '2026-10-15'),
-    (12, 1, 3, 2026, 10, 35000.00, 'unpaid', '2026-10-15');
+    -- Seed Tagihan Oktober 2026 rumah lain
+    INSERT OR IGNORE INTO bills (id, house_id, fee_type_id, period_year, period_month, amount, status, due_date) VALUES
+    (10, 1, 1, 2026, 10, 50000.00, 'paid', '2026-10-15'),
+    (11, 1, 2, 2026, 10, 40000.00, 'paid', '2026-10-15'),
+    (12, 1, 3, 2026, 10, 35000.00, 'paid', '2026-10-15'),
+    (13, 2, 1, 2026, 10, 50000.00, 'unpaid', '2026-10-15'),
+    (14, 2, 2, 2026, 10, 40000.00, 'paid', '2026-10-15'),
+    (15, 2, 3, 2026, 10, 35000.00, 'unpaid', '2026-10-15'),
+    (16, 3, 1, 2026, 10, 50000.00, 'paid', '2026-10-15'),
+    (17, 3, 2, 2026, 10, 40000.00, 'paid', '2026-10-15'),
+    (18, 3, 3, 2026, 10, 35000.00, 'paid', '2026-10-15'),
+    (22, 5, 1, 2026, 10, 50000.00, 'paid', '2026-10-15'),
+    (23, 5, 2, 2026, 10, 40000.00, 'unpaid', '2026-10-15'),
+    (24, 5, 3, 2026, 10, 35000.00, 'paid', '2026-10-15'),
+    (25, 6, 1, 2026, 10, 50000.00, 'unpaid', '2026-10-15'),
+    (26, 6, 2, 2026, 10, 40000.00, 'unpaid', '2026-10-15'),
+    (27, 6, 3, 2026, 10, 35000.00, 'paid', '2026-10-15'),
+    (28, 7, 1, 2026, 10, 50000.00, 'unpaid', '2026-10-15'),
+    (29, 7, 2, 2026, 10, 40000.00, 'unpaid', '2026-10-15'),
+    (30, 7, 3, 2026, 10, 35000.00, 'unpaid', '2026-10-15');
 
     -- Seed Riwayat Kwitansi
     INSERT OR IGNORE INTO payments (id, bill_id, receipt_no, amount_paid, payment_method, paid_at) VALUES
@@ -185,7 +218,17 @@ function initSQLiteSchema(PDO $pdo): void {
     (6, 6, 'INV-202608-B312-03', 35000.00, 'BCA Virtual Account', '2026-08-02 09:12:00'),
     (7, 7, 'INV-202609-B312-01', 50000.00, 'QRIS Instant', '2026-09-03 14:20:00'),
     (8, 8, 'INV-202609-B312-02', 40000.00, 'QRIS Instant', '2026-09-03 14:20:00'),
-    (9, 9, 'INV-202609-B312-03', 35000.00, 'QRIS Instant', '2026-09-03 14:20:00');
+    (9, 9, 'INV-202609-B312-03', 35000.00, 'QRIS Instant', '2026-09-03 14:20:00'),
+    (10, 10, 'INV-202610-A105-1', 50000.00, 'QRIS Instant', '2026-10-02 08:05:00'),
+    (11, 11, 'INV-202610-A105-2', 40000.00, 'QRIS Instant', '2026-10-02 08:05:00'),
+    (12, 12, 'INV-202610-A105-3', 35000.00, 'QRIS Instant', '2026-10-02 08:05:00'),
+    (13, 14, 'INV-202610-A106-2', 40000.00, 'Tunai via Petugas', '2026-10-04 07:15:00'),
+    (14, 16, 'INV-202610-B311-1', 50000.00, 'BCA Virtual Account', '2026-10-01 20:31:00'),
+    (15, 17, 'INV-202610-B311-2', 40000.00, 'BCA Virtual Account', '2026-10-01 20:31:00'),
+    (16, 18, 'INV-202610-B311-3', 35000.00, 'BCA Virtual Account', '2026-10-01 20:31:00'),
+    (17, 22, 'INV-202610-B313-1', 50000.00, 'Tunai via Petugas', '2026-10-03 21:10:00'),
+    (18, 24, 'INV-202610-B313-3', 35000.00, 'Tunai via Petugas', '2026-10-05 07:40:00'),
+    (19, 27, 'INV-202610-C208-3', 35000.00, 'QRIS Instant', '2026-10-04 10:22:00');
     ";
 
     $pdo->exec($queries);
@@ -209,4 +252,26 @@ function verifyCsrfToken(?string $token): bool {
 // Helper Format Rupiah
 function formatRupiah(float|int $amount): string {
     return 'Rp ' . number_format($amount, 0, ',', '.');
+}
+
+// Helper Label Role
+function roleLabel(string $role): string {
+    return match ($role) {
+        'warga'        => 'Kepala Keluarga',
+        'satpam_siang' => 'Satpam Jaga Siang',
+        'satpam_malam' => 'Satpam Jaga Malam',
+        'sampah'       => 'Petugas Sampah',
+        'super_admin'  => 'Super Admin',
+        default        => ucfirst($role),
+    };
+}
+
+// Helper Label Periode
+function periodLabel(?int $month, ?int $year = 2026): string {
+    $names = [
+        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+    ];
+    return ($names[$month] ?? 'Bulan ' . $month) . ' ' . ($year ?? 2026);
 }

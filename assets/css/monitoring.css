@@ -1,0 +1,366 @@
+/* Sidebar Role Badges */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.role-badge.super_admin {
+  background: #f0e9fd;
+  color: #6941c6;
+  border: 1px solid rgba(105, 65, 198, 0.25);
+}
+
+.role-badge.satpam_siang,
+.role-badge.satpam_malam {
+  background: var(--accent-blue-subtle);
+  color: var(--accent-blue);
+  border: 1px solid rgba(0, 113, 227, 0.25);
+}
+
+.role-badge.sampah {
+  background: var(--badge-paid-bg);
+  color: var(--badge-paid-text);
+  border: 1px solid var(--badge-paid-border);
+}
+
+.role-badge.warga {
+  background: var(--bg-page);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ============================================
+   MONITORING MAP — Rumah per Blok & Jalur
+   ============================================ */
+
+.map-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.map-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: #fff;
+}
+
+.legend-dot.lunas { background: #d3f2dc; border-color: rgba(52, 199, 89, 0.45); }
+.legend-dot.belum { background: #ffe9cc; border-color: rgba(255, 149, 0, 0.45); }
+.legend-dot.kosong { background: #e5e5ea; border-color: var(--border-subtle); }
+
+.map-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.block-panel {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px 18px 18px;
+}
+
+.block-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.block-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.block-title h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.block-title span.lane {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+}
+
+.block-summary {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.block-progress-track {
+  width: 120px;
+  height: 6px;
+  background: #e5e5ea;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.block-progress-fill {
+  height: 100%;
+  background: var(--badge-paid-text);
+  border-radius: var(--radius-pill);
+}
+
+.block-progress-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Jalur (lane) rows inside block */
+.lane-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+  border-top: 1px dashed var(--border-subtle);
+}
+
+.lane-row:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.lane-label {
+  flex: 0 0 150px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+}
+
+.house-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.house-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #fff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: all 0.12s ease;
+  min-width: 84px;
+}
+
+.house-chip:hover {
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+
+.house-chip .chip-icon {
+  font-size: 13px;
+}
+
+.house-chip .chip-status {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+}
+
+.house-chip.all-paid .chip-status {
+  background: var(--badge-paid-bg);
+  color: var(--badge-paid-text);
+  border: 1px solid var(--badge-paid-border);
+}
+
+.house-chip.has-unpaid .chip-status {
+  background: var(--badge-unpaid-bg);
+  color: var(--badge-unpaid-text);
+  border: 1px solid var(--badge-unpaid-border);
+}
+
+.house-chip.no-user {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.house-chip.no-user:hover {
+  border-color: var(--border-subtle);
+  transform: none;
+  box-shadow: none;
+}
+
+/* House Detail Drawer (Panel) */
+.house-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: none;
+  align-items: stretch;
+  justify-content: flex-end;
+  z-index: 90;
+}
+
+.house-detail-overlay.active {
+  display: flex;
+}
+
+.house-detail-panel {
+  width: 460px;
+  max-width: 92vw;
+  height: 100%;
+  background: #fff;
+  border-left: 1px solid var(--border-subtle);
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.10);
+  overflow-y: auto;
+  animation: slideInRight 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.house-detail-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.house-detail-header h4 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.house-detail-header .house-sub {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.house-detail-body {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.detail-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+.detail-kv-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.detail-kv .label {
+  font-size: 10.5px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.detail-kv .val {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-top: 2px;
+}
+
+.detail-bill-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.detail-bill-table th {
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.detail-bill-table td {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.detail-bill-table td.amount {
+  text-align: right;
+  font-weight: 600;
+}
+
+.house-detail-empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+@media (max-width: 992px) {
+  .lane-label { flex: 0 0 100%; }
+  .map-toolbar { flex-direction: column; align-items: flex-start; }
+}

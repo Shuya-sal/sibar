@@ -69,8 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(generateCsrfToken()) ?>">
 
       <div class="form-group">
-        <label for="username">Akun Rumah / Username</label>
-        <input type="text" id="username" name="username" class="form-control" placeholder="Contoh: b3-12" required value="<?= htmlspecialchars($_POST['username'] ?? 'b3-12') ?>">
+        <label for="username">Akun / Username</label>
+        <input type="text" id="username" name="username" class="form-control" placeholder="Contoh: b3-12 atau satpam_siang" required value="<?= htmlspecialchars($_POST['username'] ?? 'b3-12') ?>">
       </div>
 
       <div class="form-group">
@@ -82,10 +82,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <div class="auth-hint">
-      <strong>Akun Uji Coba Default:</strong><br>
-      • Blok B3 No. 12: <code>b3-12</code> (Pass: <code>password123</code>)<br>
-      • Blok A1 No. 05: <code>a1-05</code> (Pass: <code>password123</code>)<br>
-      • Blok C2 No. 08: <code>c2-08</code> (Pass: <code>password123</code>)
+      <strong>Akun Uji Coba (Password: <code>password123</code>):</strong><br>
+      • Warga (KK): <code>b3-12</code>, <code>a1-05</code>, <code>c2-08</code><br>
+      • Satpam Jaga Siang: <code>satpam_siang</code><br>
+      • Satpam Jaga Malam: <code>satpam_malam</code><br>
+      • Petugas Sampah: <code>sampah</code><br>
+      • Super Admin (akses semua): <code>superadmin</code>
     </div>
   </div>
 </div>

@@ -102,6 +102,7 @@ sibar/
 ├── logout.php                  # Halaman keluar sesi
 ├── dashboard.php               # Dashboard warga KK (tengah: tagihan, bawah: history)
 ├── monitoring.php              # Peta rumah per blok & jalur (petugas + super admin)
+├── users.php                   # Pusat pengaturan & CRUD akun (KK, Satpam, Sampah) — Super Admin
 ├── process_payment.php         # Handler transaksi pelunasan & pencatatan kwitansi
 ├── receipt.php                 # Kwitansi digital siap cetak / PDF
 └── README.md                   # Petunjuk instalasi dan dokumentasi

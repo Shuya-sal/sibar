@@ -665,8 +665,10 @@
       .search-input-wrap { min-width: 100% !important; width: 100% !important; }
       .search-input-wrap input { height: 40px; font-size: 13px; padding-left: 36px; }
       .admin-toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
-      .filter-tabs { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 3px; gap: 4px; }
+      .filter-tabs { display: flex; flex-wrap: wrap; overflow-x: visible; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 4px; gap: 4px; }
       .filter-tabs::-webkit-scrollbar { display: none; }
+      .filter-tab { padding: 7px 12px; font-size: 11.5px; }
+      .search-input-wrap { margin-top: 2px; }
 
       /* Card List View untuk tabel di mobile */
       #usersTable, #usersTable tbody, #usersTable tr, #usersTable td { display: block; width: 100%; }

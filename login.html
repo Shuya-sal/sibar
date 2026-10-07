@@ -91,6 +91,36 @@
       cursor: pointer; transition: background 0.12s ease;
     }
     .auth-hint code:hover { background: var(--accent-blue-subtle); color: var(--accent-blue); }
+    .quick-login-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .quick-chip {
+      background: #fff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-pill);
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.12s ease;
+      font-family: inherit;
+    }
+    .quick-chip:hover, .quick-chip:active {
+      background: var(--accent-blue-subtle);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+    @media (max-width: 480px) {
+      body { padding: 14px; }
+      .auth-card { padding: 22px 18px; border-radius: var(--radius-lg); }
+    }
     .demo-note {
       margin-top: 16px; font-size: 11px; color: var(--text-tertiary);
       text-align: center; max-width: 400px; line-height: 1.5;
@@ -122,12 +152,17 @@
   </form>
 
   <div class="auth-hint">
-    <strong>Akun Demo (klik untuk isi otomatis — password: <code>password123</code>):</strong><br>
-    • Warga (KK): <code class="quick-login" data-u="b3-12">b3-12</code>, <code class="quick-login" data-u="a1-05">a1-05</code>, <code class="quick-login" data-u="c2-09">c2-09</code><br>
-    • Satpam Jaga Siang: <code class="quick-login" data-u="satpam_siang">satpam_siang</code><br>
-    • Satpam Jaga Malam: <code class="quick-login" data-u="satpam_malam">satpam_malam</code><br>
-    • Petugas Sampah: <code class="quick-login" data-u="sampah">sampah</code><br>
-    • Super Admin (akses semua): <code class="quick-login" data-u="superadmin">superadmin</code>
+    <div style="font-size:11px; font-weight:700; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
+      Pilih Cepat Akun Demo (Password: <code>password123</code>):
+    </div>
+    <div class="quick-login-grid">
+      <button type="button" class="quick-chip" onclick="fillQuickDemo('b3-12')">🏠 b3-12 (KK)</button>
+      <button type="button" class="quick-chip" onclick="fillQuickDemo('a1-05')">🏠 a1-05 (KK)</button>
+      <button type="button" class="quick-chip" onclick="fillQuickDemo('satpam_siang')">☀️ Satpam Siang</button>
+      <button type="button" class="quick-chip" onclick="fillQuickDemo('satpam_malam')">🌙 Satpam Malam</button>
+      <button type="button" class="quick-chip" onclick="fillQuickDemo('sampah')">🗑️ Sampah</button>
+      <button type="button" class="quick-chip" onclick="fillQuickDemo('superadmin')">⚡ Super Admin</button>
+    </div>
   </div>
 </div>
 
@@ -140,13 +175,11 @@
 <script>
   const alertBox = document.getElementById('authAlert');
 
-  document.querySelectorAll('.quick-login').forEach(el => {
-    el.addEventListener('click', () => {
-      document.getElementById('username').value = el.dataset.u;
-      document.getElementById('password').value = 'password123';
-      alertBox.classList.remove('show');
-    });
-  });
+  function fillQuickDemo(u) {
+    document.getElementById('username').value = u;
+    document.getElementById('password').value = 'password123';
+    alertBox.classList.remove('show');
+  }
 
   document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();

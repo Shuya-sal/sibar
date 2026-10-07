@@ -624,13 +624,55 @@
     }
     .toast.show { transform: translateY(0); opacity: 1; }
 
-    @media (max-width: 768px) {
-      .app-container { flex-direction: column; }
-      .sidebar { width: 100%; height: auto; position: static; }
-      .form-grid-2, .role-option-group { grid-template-columns: 1fr; }
-      .household-hero { flex-direction: column; align-items: flex-start; }
-      .hero-summary-box { border-left: none; padding-left: 0; text-align: left; }
+    .ios-bottom-tabbar {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 56px;
+      background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-subtle); display: none; justify-content: space-around; align-items: center; z-index: 150;
     }
+    .tabbar-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--text-secondary); text-decoration: none; font-size: 10px; font-weight: 500; }
+    .tabbar-item.active { color: var(--accent-blue); font-weight: 600; }
+    .tabbar-item svg { width: 20px; height: 20px; stroke-width: 2; }
+
+    @media (max-width: 860px) {
+      body { padding-bottom: 84px !important; }
+      .content-body { padding: 12px 14px 84px !important; gap: 12px; }
+      .sidebar { display: none !important; }
+      .app-container { flex-direction: column; }
+      .top-header { padding: 8px 14px; }
+      .content-body { padding: 12px 14px 24px; gap: 12px; }
+      .household-hero { flex-direction: column; align-items: stretch; gap: 10px; padding: 14px; }
+      .hero-meta p { display: none; }
+      .hero-summary-box { border-left: none; padding-left: 0; text-align: left; border-top: 1px solid var(--border-subtle); padding-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+      .section-header { flex-direction: column; align-items: stretch; gap: 8px; }
+      .search-input-wrap { min-width: 100% !important; width: 100% !important; }
+      .search-input-wrap input { height: 40px; font-size: 13px; padding-left: 36px; }
+      .admin-toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
+      .filter-tabs { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 3px; gap: 4px; }
+      .filter-tabs::-webkit-scrollbar { display: none; }
+
+      /* Card List View untuk tabel di mobile */
+      #usersTable, #usersTable tbody, #usersTable tr, #usersTable td { display: block; width: 100%; }
+      #usersTable thead { display: none; }
+      #usersTable tbody { display: flex; flex-direction: column; gap: 10px; }
+      #usersTable tr { background: #fff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); box-sizing: border-box; }
+      #usersTable td { padding: 2px 0 !important; border: none !important; }
+      #usersTable td:first-child { font-size: 14px; font-weight: 700; }
+      #usersTable td:nth-child(2) { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-top: 2px; }
+      #usersTable td:nth-child(3) { margin: 6px 0 4px; }
+      #usersTable td:nth-child(4) { font-size: 11.5px; color: var(--text-secondary); }
+      #usersTable td:nth-child(5) { display: inline-block; margin-top: 4px; }
+      #usersTable td:last-child { border-top: 1px solid var(--border-subtle) !important; padding-top: 10px !important; margin-top: 8px; display: flex; justify-content: flex-end; gap: 8px; }
+      #usersTable td:last-child .btn-action-icon { min-height: 36px; padding: 6px 14px; font-size: 12px; border-radius: var(--radius-pill); }
+
+      /* Apple Bottom Sheet Modal */
+      .modal-overlay { align-items: flex-end !important; padding: 0 !important; }
+      .modal-card { width: 100% !important; max-width: 100% !important; border-radius: 20px 20px 0 0 !important; max-height: 88vh; animation: slideUpSheet 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important; }
+      .form-grid-2, .role-option-group { grid-template-columns: 1fr; }
+      .ios-bottom-tabbar { display: flex !important; }
+    }
+    @keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-grabber { width: 38px; height: 5px; background: #d1d1d6; border-radius: 3px; margin: 8px auto 0; display: block; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -767,6 +809,7 @@
      ========================================== -->
 <div class="modal-overlay" id="addModalOverlay">
   <div class="modal-card">
+    <div class="modal-grabber"></div>
     <div class="modal-header">
       <h4>Tambah Akun Pengguna Baru</h4>
       <button type="button" class="modal-close" onclick="closeAddModal()">&times;</button>
@@ -883,6 +926,7 @@
      ========================================== -->
 <div class="modal-overlay" id="editModalOverlay">
   <div class="modal-card">
+    <div class="modal-grabber"></div>
     <div class="modal-header">
       <h4 id="editModalTitle">Edit Data Akun Pengguna</h4>
       <button type="button" class="modal-close" onclick="closeEditModal()">&times;</button>
@@ -961,6 +1005,7 @@
      ========================================== -->
 <div class="modal-overlay" id="deleteModalOverlay">
   <div class="modal-card" style="max-width: 400px;">
+    <div class="modal-grabber"></div>
     <div class="modal-header">
       <h4>Konfirmasi Hapus Akun</h4>
       <button type="button" class="modal-close" onclick="closeDeleteModal()">&times;</button>
@@ -980,6 +1025,22 @@
     </div>
   </div>
 </div>
+
+<!-- APPLE IOS NATIVE BOTTOM TAB BAR -->
+<nav class="ios-bottom-tabbar">
+  <a href="monitoring.html" class="tabbar-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+    <span>Peta Rumah</span>
+  </a>
+  <a href="users.html" class="tabbar-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span>Kelola Akun</span>
+  </a>
+  <a href="login.html" class="tabbar-item" style="color:var(--accent-red);" onclick="sessionStorage.removeItem('sibar_demo_session')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    <span>Keluar</span>
+  </a>
+</nav>
 
 <!-- TOAST -->
 <div class="toast" id="toastBox">

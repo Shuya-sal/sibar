@@ -165,7 +165,7 @@ unset($_SESSION['flash_success']);
           <span>Bulan Berjalan: <strong><?= $periodLabel ?></strong></span>
         </div>
         <?php if ($unpaidCount > 0): ?>
-          <button class="btn-primary" onclick="openPaymentModal('all', <?= $totalUnpaid ?>, 'Semua Tagihan (Jaga Malam, Jaga Siang, Sampah)')">
+          <button class="btn-primary desktop-only" onclick="openPaymentModal('all', <?= $totalUnpaid ?>, 'Semua Tagihan (Jaga Malam, Jaga Siang, Sampah)')">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             Bayar Sekaligus
           </button>
@@ -234,7 +234,7 @@ unset($_SESSION['flash_success']);
         </div>
 
         <!-- KPI 3 -->
-        <div class="kpi-card">
+        <div class="kpi-card desktop-only">
           <div class="kpi-header">
             <span class="kpi-title">Status Layanan Lingkungan</span>
             <div class="kpi-icon-wrap">🛡️</div>
@@ -379,8 +379,9 @@ unset($_SESSION['flash_success']);
 <!-- MODAL PEMBAYARAN -->
 <div class="modal-overlay" id="paymentModal">
   <div class="modal-card">
+    <div class="modal-grabber"></div>
     <div class="modal-header">
-      <h4 id="modalTitle">Konfirmasi Pembayaran Iuran</h4>
+      <h4 id="modalTitle">Konfirmasi Pembayaran</h4>
       <button type="button" class="modal-close" onclick="closePaymentModal()">&times;</button>
     </div>
     <form method="POST" action="process_payment.php" id="paymentForm">
@@ -435,6 +436,36 @@ unset($_SESSION['flash_success']);
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34c759" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
   <span id="toastText"><?= htmlspecialchars($flashSuccess ?? 'Operasi berhasil dilakukan!') ?></span>
 </div>
+
+<?php if ($unpaidCount > 0): ?>
+<!-- MOBILE STICKY PAY BAR (Jempol Ramah) -->
+<div class="mobile-sticky-pay-bar">
+  <div>
+    <div class="info-label"><?= $unpaidCount ?> Tagihan Menunggu</div>
+    <div class="info-amount">Rp <?= number_format($totalUnpaid, 0, ',', '.') ?></div>
+  </div>
+  <button type="button" class="btn-pay-all" onclick="openPaymentModal(0, <?= $totalUnpaid ?>, 'Semua Tagihan (<?= $unpaidCount ?> Pos)')">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    Bayar Sekaligus
+  </button>
+</div>
+<?php endif; ?>
+
+<!-- APPLE IOS NATIVE BOTTOM TAB BAR -->
+<nav class="ios-bottom-tabbar">
+  <a href="dashboard.php" class="tabbar-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+    <span>Tagihan</span>
+  </a>
+  <a href="#historySection" class="tabbar-item" onclick="document.getElementById('historySection').scrollIntoView({behavior:'smooth'})">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+    <span>Riwayat</span>
+  </a>
+  <a href="logout.php" class="tabbar-item" style="color:var(--accent-red);">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    <span>Keluar</span>
+  </a>
+</nav>
 
 <script>
   function openPaymentModal(target, amount, title) {

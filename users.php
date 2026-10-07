@@ -692,6 +692,7 @@ foreach ($allUsers as $u) {
      ========================================== -->
 <div class="modal-overlay" id="addModalOverlay">
   <div class="modal-card" style="width: 520px;">
+    <div class="modal-grabber"></div>
     <div class="modal-header">
       <h4>Tambah Akun Pengguna Baru</h4>
       <button type="button" class="modal-close" onclick="closeAddModal()">&times;</button>
@@ -821,6 +822,7 @@ foreach ($allUsers as $u) {
      ========================================== -->
 <div class="modal-overlay" id="editModalOverlay">
   <div class="modal-card" style="width: 520px;">
+    <div class="modal-grabber"></div>
     <div class="modal-header">
       <h4 id="editModalTitle">Edit Data Akun Pengguna</h4>
       <button type="button" class="modal-close" onclick="closeEditModal()">&times;</button>
@@ -908,6 +910,7 @@ foreach ($allUsers as $u) {
      ========================================== -->
 <div class="modal-overlay" id="deleteModalOverlay">
   <div class="modal-card" style="width: 400px;">
+    <div class="modal-grabber"></div>
     <div class="modal-header">
       <h4>Konfirmasi Hapus Akun</h4>
       <button type="button" class="modal-close" onclick="closeDeleteModal()">&times;</button>
@@ -932,6 +935,22 @@ foreach ($allUsers as $u) {
     </form>
   </div>
 </div>
+
+<!-- APPLE IOS NATIVE BOTTOM TAB BAR -->
+<nav class="ios-bottom-tabbar">
+  <a href="monitoring.php" class="tabbar-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+    <span>Peta Rumah</span>
+  </a>
+  <a href="users.php" class="tabbar-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span>Kelola Akun</span>
+  </a>
+  <a href="logout.php" class="tabbar-item" style="color:var(--accent-red);">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    <span>Keluar</span>
+  </a>
+</nav>
 
 <!-- TOAST -->
 <div class="toast <?= ($flashSuccess || $flashError) ? 'show' : '' ?>" id="toastBox">

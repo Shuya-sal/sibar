@@ -82,15 +82,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <div class="auth-hint">
-      <strong>Akun Uji Coba (Password: <code>password123</code>):</strong><br>
-      • Warga (KK): <code>b3-12</code>, <code>a1-05</code>, <code>c2-08</code><br>
-      • Satpam Jaga Siang: <code>satpam_siang</code><br>
-      • Satpam Jaga Malam: <code>satpam_malam</code><br>
-      • Petugas Sampah: <code>sampah</code><br>
-      • Super Admin (akses semua): <code>superadmin</code>
+      <div style="font-size:11px; font-weight:700; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;">
+        Pilih Cepat Akun Demo (Password: <code>password123</code>):
+      </div>
+      <div class="quick-login-grid">
+        <button type="button" class="quick-chip" onclick="fillQuick('b3-12')">🏠 b3-12 (KK)</button>
+        <button type="button" class="quick-chip" onclick="fillQuick('a1-05')">🏠 a1-05 (KK)</button>
+        <button type="button" class="quick-chip" onclick="fillQuick('satpam_siang')">☀️ Satpam Siang</button>
+        <button type="button" class="quick-chip" onclick="fillQuick('satpam_malam')">🌙 Satpam Malam</button>
+        <button type="button" class="quick-chip" onclick="fillQuick('sampah')">🗑️ Sampah</button>
+        <button type="button" class="quick-chip" onclick="fillQuick('superadmin')">⚡ Super Admin</button>
+      </div>
     </div>
   </div>
 </div>
+
+<script>
+  function fillQuick(u) {
+    document.getElementById('username').value = u;
+    document.getElementById('password').value = 'password123';
+  }
+</script>
 
 </body>
 </html>

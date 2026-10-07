@@ -360,7 +360,81 @@
   font-size: 13px;
 }
 
-@media (max-width: 992px) {
-  .lane-label { flex: 0 0 100%; }
-  .map-toolbar { flex-direction: column; align-items: flex-start; }
+@media (max-width: 860px) {
+  .lane-label {
+    flex: 0 0 100%;
+    margin-top: 2px;
+  }
+
+  .map-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  /* Chip Rumah di Layar Mobile: Grid 2 kolom rapi & mudah ditekan jempol */
+  .house-chips {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .house-chip {
+    min-height: 48px; /* Apple HIG standard tap target >= 44px */
+    padding: 10px 12px;
+    justify-content: space-between;
+    width: 100%;
+    border-radius: var(--radius-sm);
+  }
+
+  .house-chip .chip-name {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .house-chip .chip-status {
+    font-size: 9.5px;
+    padding: 2px 7px;
+  }
+
+  /* Drawer Rumah menjadi Apple Bottom Sheet di Ponsel */
+  .house-detail-overlay {
+    align-items: flex-end !important;
+  }
+
+  .house-detail-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 85vh !important;
+    border-radius: 20px 20px 0 0 !important;
+    border-left: none !important;
+    border-top: 1px solid var(--border-subtle);
+    box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.16) !important;
+    animation: slideUpSheet 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .modal-grabber {
+    width: 38px;
+    height: 5px;
+    background: #d1d1d6;
+    border-radius: 3px;
+    margin: 8px auto 4px;
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .house-detail-header {
+    padding: 14px 18px;
+  }
+
+  .house-detail-body {
+    padding: 16px 18px 24px;
+    gap: 14px;
+  }
+
+  .detail-kv-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
 }

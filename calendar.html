@@ -555,11 +555,23 @@
           </div>
         </div>
 
-        <!-- Pilihan Rumah (Bisa diakses siapa saja di demo) -->
+        <!-- Pilihan Bertingkat: Komplek → Blok → Unit Rumah -->
         <div class="filter-group">
-          <span class="filter-label">Pilih Unit Rumah:</span>
+          <span class="filter-label">Komplek:</span>
+          <select id="complexSelect" class="select-input" onchange="onComplexChange(this.value)">
+            <!-- JS populated -->
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Blok:</span>
+          <div class="pills-bar" id="blockPills">
+            <!-- JS populated -->
+          </div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Unit Rumah:</span>
           <select id="houseSelect" class="select-input" onchange="onHouseChange(this.value)">
-            <!-- Options populated by JS -->
+            <!-- JS populated -->
           </select>
         </div>
 
@@ -659,20 +671,100 @@
     }
   }
 
-  function initHouses() {
+  let selectedComplexId = 1;
+  let selectedBlock = 'all';
+
+  function initFilters() {
     const db = SibarData.load();
-    const select = document.getElementById('houseSelect');
-    select.innerHTML = '';
-    db.houses.forEach(h => {
-      // Cari nama KK dari tabel users
+    const user = SibarData.currentUser();
+    if (!user) return;
+
+    // Kunci warga ke rumahnya sendiri
+    if (user.role === 'warga' && user.house_id) {
+      selectedHouseId = user.house_id;
+      const h = db.houses.find(h => h.id === user.house_id);
+      if (h) {
+        selectedComplexId = h.complex_id || 1;
+        selectedBlock = h.block;
+      }
+      // Sembunyikan filter komplek/blok/house untuk warga
+      document.querySelectorAll('.filter-group').forEach((g, i) => {
+        if (i > 0 && i < 4) g.style.display = 'none'; // sembunyikan 3 filter selector
+      });
+    }
+
+    // Isi dropdown komplek
+    const cxSel = document.getElementById('complexSelect');
+    if (cxSel) {
+      cxSel.innerHTML = '';
+      (db.complexes || [{ id: 1, name: 'Komplek Graha Asri RT 04' }]).forEach(cx => {
+        const opt = document.createElement('option');
+        opt.value = cx.id;
+        opt.textContent = cx.name;
+        if (cx.id === selectedComplexId) opt.selected = true;
+        cxSel.appendChild(opt);
+      });
+    }
+
+    refreshBlockPills(db);
+    refreshHouseSelect(db);
+  }
+
+  function onComplexChange(val) {
+    selectedComplexId = Number(val);
+    selectedBlock = 'all';
+    const db = SibarData.load();
+    refreshBlockPills(db);
+    refreshHouseSelect(db);
+  }
+
+  function setBlock(block) {
+    selectedBlock = block;
+    const db = SibarData.load();
+    // Update pill active state
+    document.querySelectorAll('#blockPills .pill-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.block === String(block));
+    });
+    refreshHouseSelect(db);
+  }
+
+  function refreshBlockPills(db) {
+    const pills = document.getElementById('blockPills');
+    if (!pills) return;
+    const houses = db.houses.filter(h => (h.complex_id || 1) === selectedComplexId);
+    const blocks = ['all', ...new Set(houses.map(h => h.block).sort())];
+    pills.innerHTML = '';
+    blocks.forEach(b => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'pill-btn' + (b === selectedBlock ? ' active' : '');
+      btn.dataset.block = b;
+      btn.textContent = b === 'all' ? 'Semua Blok' : `Blok ${b}`;
+      btn.onclick = () => setBlock(b);
+      pills.appendChild(btn);
+    });
+  }
+
+  function refreshHouseSelect(db) {
+    const sel = document.getElementById('houseSelect');
+    if (!sel) return;
+    let houses = db.houses.filter(h => (h.complex_id || 1) === selectedComplexId);
+    if (selectedBlock !== 'all') houses = houses.filter(h => h.block === selectedBlock);
+    sel.innerHTML = '';
+    houses.forEach(h => {
       const kk = db.users.find(u => u.house_id === h.id && u.role === 'warga');
       const ownerName = h.owner || (kk ? kk.name : 'Kosong');
       const opt = document.createElement('option');
       opt.value = h.id;
-      opt.textContent = `Blok ${h.block} / No. ${h.number} — ${ownerName} (${h.lane})`;
+      opt.textContent = `Blok ${h.block}/No.${h.number} — ${ownerName}`;
       if (h.id === selectedHouseId) opt.selected = true;
-      select.appendChild(opt);
+      sel.appendChild(opt);
     });
+    // Kalau selectedHouseId tidak ada di list saat ini, ambil yang pertama
+    if (houses.length && !houses.find(h => h.id === selectedHouseId)) {
+      selectedHouseId = houses[0].id;
+    }
+    renderCalendar();
   }
 
   function onHouseChange(val) {
@@ -869,8 +961,7 @@
     renderCalendar();
   }
 
-  initHouses();
-  renderCalendar();
+  initFilters();
 </script>
 
 </body>

@@ -1318,20 +1318,47 @@ table.apple-table tr:hover td {
   .admin-toolbar {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 12px;
+    padding: 14px 16px 12px;
+  }
+
+  .search-input-wrap {
+    order: 1 !important;
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+
+  .search-input-wrap input {
+    height: 42px;
+    font-size: 13.5px;
+    padding-left: 36px;
+    border-radius: 12px;
   }
 
   .filter-tabs {
+    order: 2 !important;
+    width: 100%;
     display: flex;
+    flex-wrap: nowrap !important;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding: 3px;
-    gap: 4px;
+    padding: 2px 2px 6px;
+    gap: 8px;
   }
 
   .filter-tabs::-webkit-scrollbar {
     display: none;
+  }
+
+  .filter-tab {
+    padding: 8px 14px;
+    font-size: 12.5px;
+    flex-shrink: 0;
+  }
+
+  .toolbar-meta {
+    padding: 4px 16px 0;
   }
 
   /* Transformasi Tabel Pengguna Menjadi Card List di Mobile */

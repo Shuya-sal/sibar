@@ -369,69 +369,94 @@ foreach ($allUsers as $u) {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      padding: 14px 18px;
+      gap: 16px;
+      padding: 16px 20px;
       border-bottom: 1px solid var(--border-subtle);
     }
 
     .filter-tabs {
+      order: 1;
       display: flex;
-      gap: 6px;
-      background: var(--bg-subtle);
-      padding: 4px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-subtle);
+      gap: 8px;
+      align-items: center;
       overflow-x: auto;
       scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+      min-width: 0;
+      padding: 2px 0;
     }
-
-    .filter-tabs::-webkit-scrollbar {
-      display: none;
-    }
+    .filter-tabs::-webkit-scrollbar { display: none; }
 
     .filter-tab {
-      padding: 6px 14px;
-      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      font-size: 12.5px;
       font-weight: 500;
-      color: var(--text-secondary);
-      background: none;
-      border: none;
+      color: #3a3a3c;
+      background: #f2f2f7;
+      border: 1px solid rgba(0, 0, 0, 0.05);
       border-radius: var(--radius-pill);
       cursor: pointer;
       white-space: nowrap;
-      transition: all 0.12s ease;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+      font-family: inherit;
     }
-
+    .filter-tab:hover {
+      background: #e5e5ea;
+      color: #1c1c1e;
+    }
     .filter-tab.active {
-      background: #fff;
-      color: var(--text-primary);
+      background: var(--accent-blue);
+      color: #ffffff;
       font-weight: 600;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border-color: var(--accent-blue);
+      box-shadow: 0 2px 8px rgba(0, 113, 227, 0.28);
+    }
+    .filter-tab .tab-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 6px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 980px;
+      background: rgba(0, 0, 0, 0.06);
+      color: inherit;
+    }
+    .filter-tab.active .tab-count {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
     }
 
     .search-input-wrap {
+      order: 2;
       position: relative;
-      min-width: 240px;
+      width: 260px;
+      flex-shrink: 0;
     }
-
     .search-input-wrap input {
       width: 100%;
-      padding: 8px 14px 8px 32px;
-      font-size: 12.5px;
-      border-radius: var(--radius-pill);
+      height: 38px;
+      padding: 8px 14px 8px 34px;
+      font-size: 13px;
+      border-radius: 12px;
       border: 1px solid var(--border-subtle);
-      background: var(--bg-subtle);
+      background: #f2f2f7;
       outline: none;
       transition: all 0.15s ease;
+      font-family: inherit;
     }
-
     .search-input-wrap input:focus {
       border-color: var(--accent-blue);
-      background: #fff;
-      box-shadow: 0 0 0 3px var(--accent-blue-subtle);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
     }
-
     .search-input-wrap svg {
       position: absolute;
       left: 11px;
@@ -441,6 +466,10 @@ foreach ($allUsers as $u) {
       height: 14px;
       color: var(--text-tertiary);
       pointer-events: none;
+    }
+
+    .toolbar-meta {
+      padding: 10px 20px 0;
     }
 
     .btn-action-icon {
@@ -611,19 +640,29 @@ foreach ($allUsers as $u) {
       <!-- TABEL DAFTAR PENGGUNA -->
       <section class="section-container">
         <div class="admin-toolbar">
-          <div class="filter-tabs">
-            <button type="button" class="filter-tab active" onclick="setRoleFilter('all', this)">Semua (<?= $counts['all'] ?>)</button>
-            <button type="button" class="filter-tab" onclick="setRoleFilter('warga', this)">Kepala Keluarga (<?= $counts['warga'] ?>)</button>
-            <button type="button" class="filter-tab" onclick="setRoleFilter('satpam', this)">Satpam (<?= $counts['satpam'] ?>)</button>
-            <button type="button" class="filter-tab" onclick="setRoleFilter('sampah', this)">Sampah (<?= $counts['sampah'] ?>)</button>
-            <button type="button" class="filter-tab" onclick="setRoleFilter('super_admin', this)">Super Admin (<?= $counts['admin'] ?>)</button>
-          </div>
           <div class="search-input-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             <input type="text" id="searchInput" placeholder="Cari nama, akun, blok..." onkeyup="filterUserTable()">
           </div>
+          <div class="filter-tabs">
+            <button type="button" class="filter-tab active" onclick="setRoleFilter('all', this)">
+              <span>Semua</span><span class="tab-count"><?= $counts['all'] ?></span>
+            </button>
+            <button type="button" class="filter-tab" onclick="setRoleFilter('warga', this)">
+              <span>Kepala Keluarga</span><span class="tab-count"><?= $counts['warga'] ?></span>
+            </button>
+            <button type="button" class="filter-tab" onclick="setRoleFilter('satpam', this)">
+              <span>Satpam</span><span class="tab-count"><?= $counts['satpam'] ?></span>
+            </button>
+            <button type="button" class="filter-tab" onclick="setRoleFilter('sampah', this)">
+              <span>Sampah</span><span class="tab-count"><?= $counts['sampah'] ?></span>
+            </button>
+            <button type="button" class="filter-tab" onclick="setRoleFilter('super_admin', this)">
+              <span>Super Admin</span><span class="tab-count"><?= $counts['admin'] ?></span>
+            </button>
+          </div>
         </div>
-        <div style="padding: 0 18px;">
+        <div class="toolbar-meta">
           <span style="font-size:12px; color:var(--text-tertiary);" id="rowCountLabel">Menampilkan <?= count($allUsers) ?> akun</span>
         </div>
 
@@ -978,8 +1017,9 @@ foreach ($allUsers as $u) {
 
   function setRoleFilter(category, btn) {
     activeRoleCategory = category;
+    const targetBtn = btn.closest('.filter-tab') || btn;
     document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
+    targetBtn.classList.add('active');
     filterUserTable();
   }
 

@@ -162,5 +162,95 @@ const SIBAR = (() => {
     return JSON.parse(sessionStorage.getItem('sibar_demo_session') || 'null');
   }
 
-  return { load, save, reset, periodLabel, rupiah, roleLabel, allowedFeeCodes, feeById, payBill, currentUser, MONTHS };
+  // --- CRUD PENGGUNA & RUMAH (DEMO STATIS) ---
+  function addUser(data) {
+    const db = load();
+    const newId = (db.users.reduce((max, u) => Math.max(max, u.id), 0) || 0) + 1;
+    let houseId = null;
+
+    if (data.role === 'warga') {
+      if (data.house_choice === 'existing' && data.house_id) {
+        houseId = Number(data.house_id);
+      } else {
+        const newHouseId = (db.houses.reduce((max, h) => Math.max(max, h.id), 0) || 0) + 1;
+        const newHouse = {
+          id: newHouseId,
+          block: data.block.toUpperCase(),
+          number: String(data.number).padStart(2, '0'),
+          lane: data.lane || 'Jalur Utama',
+          status_huni: data.status_huni || 'tetap'
+        };
+        db.houses.push(newHouse);
+        houseId = newHouseId;
+
+        // Buat 3 tagihan Oktober 2026
+        const billMaxId = db.bills.reduce((max, b) => Math.max(max, b.id), 0) || 0;
+        db.fee_types.forEach((ft, idx) => {
+          db.bills.push({
+            id: billMaxId + idx + 1,
+            house_id: newHouseId,
+            fee_type_id: ft.id,
+            year: 2026,
+            month: 10,
+            amount: ft.amount,
+            status: 'unpaid',
+            due: '2026-10-15'
+          });
+        });
+      }
+    }
+
+    const newUser = {
+      id: newId,
+      house_id: houseId,
+      username: data.username.toLowerCase(),
+      role: data.role,
+      name: data.name,
+      phone: data.phone
+    };
+    db.users.push(newUser);
+    save(db);
+    return newUser;
+  }
+
+  function updateUser(id, data) {
+    const db = load();
+    const user = db.users.find(u => u.id === Number(id));
+    if (!user) return null;
+
+    user.name = data.name;
+    user.phone = data.phone;
+    user.username = data.username.toLowerCase();
+    if (data.role && user.role !== 'super_admin') {
+      user.role = data.role;
+    }
+
+    if (user.role === 'warga' && user.house_id) {
+      const house = db.houses.find(h => h.id === user.house_id);
+      if (house) {
+        if (data.block) house.block = data.block.toUpperCase();
+        if (data.number) house.number = String(data.number).padStart(2, '0');
+        if (data.lane) house.lane = data.lane;
+        if (data.status_huni) house.status_huni = data.status_huni;
+      }
+    }
+    save(db);
+    return user;
+  }
+
+  function deleteUser(id) {
+    const db = load();
+    const idx = db.users.findIndex(u => u.id === Number(id));
+    if (idx !== -1) {
+      db.users.splice(idx, 1);
+      save(db);
+      return true;
+    }
+    return false;
+  }
+
+  return {
+    load, save, reset, periodLabel, rupiah, roleLabel, allowedFeeCodes, feeById, payBill,
+    currentUser, MONTHS, addUser, updateUser, deleteUser
+  };
 })();

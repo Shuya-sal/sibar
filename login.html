@@ -136,20 +136,8 @@
   Versi lengkap PHP + MySQL tersedia di <a href="https://github.com/Shuya-sal/sibar">repositori utama</a>.
 </p>
 
+<script src="sibar-demo-data.js"></script>
 <script>
-  // Seed akun demo (sekali saja)
-  if (!localStorage.getItem('sibar_demo_users')) {
-    localStorage.setItem('sibar_demo_users', JSON.stringify([
-      { username: 'b3-12', password: 'password123', role: 'warga', name: 'Bpk. Hendra Pratama' },
-      { username: 'a1-05', password: 'password123', role: 'warga', name: 'Bpk. Budi Santoso' },
-      { username: 'c2-09', password: 'password123', role: 'warga', name: 'Bpk. Joko Susilo' },
-      { username: 'satpam_siang', password: 'password123', role: 'satpam_siang', name: 'Bpk. Tono Wibowo' },
-      { username: 'satpam_malam', password: 'password123', role: 'satpam_malam', name: 'Bpk. Slamet Riyadi' },
-      { username: 'sampah', password: 'password123', role: 'sampah', name: 'Bpk. Darma Putra' },
-      { username: 'superadmin', password: 'password123', role: 'super_admin', name: 'Admin RT 04' }
-    ]));
-  }
-
   const alertBox = document.getElementById('authAlert');
 
   document.querySelectorAll('.quick-login').forEach(el => {
@@ -164,10 +152,12 @@
     e.preventDefault();
     const u = document.getElementById('username').value.trim().toLowerCase();
     const p = document.getElementById('password').value;
-    const users = JSON.parse(localStorage.getItem('sibar_demo_users') || '[]');
-    const found = users.find(x => x.username === u && x.password === p);
 
-    if (found) {
+    const db = SIBAR.load();
+    const found = db.users.find(x => x.username.toLowerCase() === u);
+
+    // Di demo, password default adalah 'password123'
+    if (found && p === 'password123') {
       sessionStorage.setItem('sibar_demo_session', JSON.stringify(found));
       window.location.href = found.role === 'warga' ? 'dashboard.html' : 'monitoring.html';
       return false;

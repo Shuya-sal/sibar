@@ -312,9 +312,29 @@
     { code: 'sampah', label: 'Sampah & Kebersihan', icon: '🗑️' }
   ];
   const visiblePos = feeCodes ? allPos.filter(p => feeCodes.includes(p.code)) : allPos;
-  scopeMenu.innerHTML = visiblePos.map(p =>
+  let scopeMenuHtml = visiblePos.map(p =>
     `<a href="#" class="nav-item" onclick="event.preventDefault()">${p.icon} ${p.label}</a>`
   ).join('');
+
+  if (session.role === 'super_admin') {
+    scopeMenuHtml += `
+      <div class="nav-label" style="margin-top:6px;">Administrasi</div>
+      <a href="users.html" class="nav-item">⚙️ Kelola Akun (KK, Satpam, Sampah)</a>
+    `;
+    const topHdr = document.querySelector('.top-header');
+    if (topHdr) {
+      const btn = document.createElement('a');
+      btn.href = 'users.html';
+      btn.className = 'btn-primary';
+      btn.style.textDecoration = 'none';
+      btn.style.fontSize = '12px';
+      btn.style.padding = '6px 12px';
+      btn.style.marginLeft = '12px';
+      btn.innerHTML = '⚙️ Kelola Akun';
+      topHdr.appendChild(btn);
+    }
+  }
+  scopeMenu.innerHTML = scopeMenuHtml;
 
   function getFilteredBills(db) {
     let bills = db.bills.filter(b => b.year === YEAR && b.month === MONTH);

@@ -340,62 +340,107 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      padding: 14px 18px;
+      gap: 16px;
+      padding: 16px 20px;
       border-bottom: 1px solid var(--border-subtle);
     }
 
     .filter-tabs {
+      order: 1;
       display: flex;
-      gap: 5px;
-      background: var(--bg-subtle);
-      padding: 3px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--border-subtle);
+      gap: 8px;
+      align-items: center;
       overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+      min-width: 0;
+      padding: 2px 0;
     }
+    .filter-tabs::-webkit-scrollbar { display: none; }
+
     .filter-tab {
-      padding: 5px 12px;
-      font-size: 11.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      font-size: 12.5px;
       font-weight: 500;
-      color: var(--text-secondary);
-      background: none;
-      border: none;
+      color: #3a3a3c;
+      background: #f2f2f7;
+      border: 1px solid rgba(0, 0, 0, 0.05);
       border-radius: var(--radius-pill);
       cursor: pointer;
       white-space: nowrap;
-      transition: all 0.12s ease;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .filter-tab:hover {
+      background: #e5e5ea;
+      color: #1c1c1e;
     }
     .filter-tab.active {
-      background: #fff;
-      color: var(--text-primary);
+      background: var(--accent-blue);
+      color: #ffffff;
       font-weight: 600;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border-color: var(--accent-blue);
+      box-shadow: 0 2px 8px rgba(0, 113, 227, 0.28);
+    }
+    .filter-tab .tab-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 6px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 980px;
+      background: rgba(0, 0, 0, 0.06);
+      color: inherit;
+    }
+    .filter-tab.active .tab-count {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
     }
 
     .search-input-wrap {
+      order: 2;
       position: relative;
-      min-width: 240px;
+      width: 260px;
+      flex-shrink: 0;
     }
     .search-input-wrap input {
       width: 100%;
-      padding: 6px 12px 6px 30px;
-      font-size: 12px;
-      border-radius: var(--radius-pill);
+      height: 38px;
+      padding: 8px 14px 8px 34px;
+      font-size: 13px;
+      border-radius: 12px;
       border: 1px solid var(--border-subtle);
-      background: #fff;
+      background: #f2f2f7;
       outline: none;
+      transition: all 0.15s ease;
+      font-family: inherit;
     }
-    .search-input-wrap input:focus { border-color: var(--accent-blue); }
+    .search-input-wrap input:focus {
+      border-color: var(--accent-blue);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
+    }
     .search-input-wrap svg {
       position: absolute;
-      left: 10px;
+      left: 11px;
       top: 50%;
       transform: translateY(-50%);
-      width: 13px;
-      height: 13px;
+      width: 14px;
+      height: 14px;
       color: var(--text-tertiary);
+      pointer-events: none;
+    }
+
+    .toolbar-meta {
+      padding: 10px 20px 0;
     }
 
     /* TABLE */
@@ -661,14 +706,43 @@
       .hero-meta p { display: none; }
       .hero-summary-box { border-left: none; padding-left: 0; text-align: left; border-top: 1px solid var(--border-subtle); padding-top: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-      .section-header { flex-direction: column; align-items: stretch; gap: 8px; }
-      .search-input-wrap { min-width: 100% !important; width: 100% !important; }
-      .search-input-wrap input { height: 40px; font-size: 13px; padding-left: 36px; }
-      .admin-toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
-      .filter-tabs { display: flex; flex-wrap: wrap; overflow-x: visible; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 4px; gap: 4px; }
+      .admin-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 14px 16px 12px;
+      }
+      .search-input-wrap {
+        order: 1 !important;
+        width: 100% !important;
+        min-width: 100% !important;
+      }
+      .search-input-wrap input {
+        height: 42px;
+        font-size: 13.5px;
+        padding-left: 36px;
+        border-radius: 12px;
+      }
+      .filter-tabs {
+        order: 2 !important;
+        width: 100%;
+        display: flex;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding: 2px 2px 6px;
+        gap: 8px;
+      }
       .filter-tabs::-webkit-scrollbar { display: none; }
-      .filter-tab { padding: 7px 12px; font-size: 11.5px; }
-      .search-input-wrap { margin-top: 2px; }
+      .filter-tab {
+        padding: 8px 14px;
+        font-size: 12.5px;
+        flex-shrink: 0;
+      }
+      .toolbar-meta {
+        padding: 4px 16px 0;
+      }
 
       /* Card List View untuk tabel di mobile */
       #usersTable, #usersTable tbody, #usersTable tr, #usersTable td { display: block; width: 100%; }
@@ -775,15 +849,15 @@
       <!-- TABEL DAFTAR PENGGUNA -->
       <section class="section-container">
         <div class="admin-toolbar">
-          <div class="filter-tabs" id="filterTabsContainer">
-            <!-- Filter tabs rendered by JS -->
-          </div>
           <div class="search-input-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             <input type="text" id="searchInput" placeholder="Cari nama, akun, blok..." onkeyup="filterUserTable()">
           </div>
+          <div class="filter-tabs" id="filterTabsContainer">
+            <!-- Filter chips rendered by JS -->
+          </div>
         </div>
-        <div style="padding: 10px 18px 0;">
+        <div class="toolbar-meta">
           <span style="font-size:12px; color:var(--text-tertiary);" id="rowCountLabel">Menampilkan akun</span>
         </div>
 
@@ -1098,11 +1172,21 @@
 
     // Render tabs
     document.getElementById('filterTabsContainer').innerHTML = `
-      <button type="button" class="filter-tab ${activeRoleCategory === 'all' ? 'active' : ''}" onclick="setRoleFilter('all', this)">Semua (${counts.all})</button>
-      <button type="button" class="filter-tab ${activeRoleCategory === 'warga' ? 'active' : ''}" onclick="setRoleFilter('warga', this)">Kepala Keluarga (${counts.warga})</button>
-      <button type="button" class="filter-tab ${activeRoleCategory === 'satpam' ? 'active' : ''}" onclick="setRoleFilter('satpam', this)">Satpam (${counts.satpam})</button>
-      <button type="button" class="filter-tab ${activeRoleCategory === 'sampah' ? 'active' : ''}" onclick="setRoleFilter('sampah', this)">Sampah (${counts.sampah})</button>
-      <button type="button" class="filter-tab ${activeRoleCategory === 'super_admin' ? 'active' : ''}" onclick="setRoleFilter('super_admin', this)">Super Admin (${counts.admin})</button>
+      <button type="button" class="filter-tab ${activeRoleCategory === 'all' ? 'active' : ''}" onclick="setRoleFilter('all', this)">
+        <span>Semua</span><span class="tab-count">${counts.all}</span>
+      </button>
+      <button type="button" class="filter-tab ${activeRoleCategory === 'warga' ? 'active' : ''}" onclick="setRoleFilter('warga', this)">
+        <span>Kepala Keluarga</span><span class="tab-count">${counts.warga}</span>
+      </button>
+      <button type="button" class="filter-tab ${activeRoleCategory === 'satpam' ? 'active' : ''}" onclick="setRoleFilter('satpam', this)">
+        <span>Satpam</span><span class="tab-count">${counts.satpam}</span>
+      </button>
+      <button type="button" class="filter-tab ${activeRoleCategory === 'sampah' ? 'active' : ''}" onclick="setRoleFilter('sampah', this)">
+        <span>Sampah</span><span class="tab-count">${counts.sampah}</span>
+      </button>
+      <button type="button" class="filter-tab ${activeRoleCategory === 'super_admin' ? 'active' : ''}" onclick="setRoleFilter('super_admin', this)">
+        <span>Super Admin</span><span class="tab-count">${counts.admin}</span>
+      </button>
     `;
 
     // Render table
@@ -1180,8 +1264,9 @@
 
   function setRoleFilter(category, btn) {
     activeRoleCategory = category;
+    const targetBtn = btn.closest('.filter-tab') || btn;
     document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
+    targetBtn.classList.add('active');
     filterUserTable();
   }
 

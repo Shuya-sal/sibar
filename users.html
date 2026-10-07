@@ -797,6 +797,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         Peta Rumah (Blok &amp; Jalur)
       </a>
+      <a href="calendar.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+        Kalender &amp; Rekap Tahunan
+      </a>
 
       <div class="nav-label">Administrasi</div>
       <a href="users.html" class="nav-item active">
@@ -1112,6 +1116,10 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
     <span>Peta Rumah</span>
   </a>
+  <a href="calendar.html" class="tabbar-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+    <span>Kalender</span>
+  </a>
   <a href="users.html" class="tabbar-item active">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     <span>Kelola Akun</span>
@@ -1204,10 +1212,17 @@
       let addressHtml = '<div style="color:var(--text-secondary);">-</div>';
       let huniHtml = '<span style="font-size:11px; color:var(--text-tertiary);">Petugas</span>';
 
+      // Cari data komplek
+      const dbSnap = SibarData.load();
+      const cxList = dbSnap.complexes || [];
+      const userCx = cxList.find(c => c.id === (u.complex_id || 1));
+      const cxName = userCx ? userCx.name : 'Komplek Graha Asri RT 04';
+
       if (u.role === 'warga' && house) {
         addressHtml = `
           <div style="font-weight:600; color:var(--text-primary);">Blok ${house.block} / No. ${house.number}</div>
           <div style="font-size:11px; color:var(--text-tertiary);">${house.lane || 'Jalur Utama'}</div>
+          <div style="font-size:11px; color:var(--accent-blue); margin-top:2px;">📍 ${cxName}</div>
         `;
         huniHtml = `
           <span class="status-badge ${house.status_huni === 'tetap' ? 'paid' : 'unpaid'}">
@@ -1215,9 +1230,11 @@
           </span>
         `;
       } else if (u.role.includes('satpam')) {
-        addressHtml = '<div style="color:var(--text-secondary);">Pos Jaga Lingkungan</div>';
+        const coordStr = (u.latitude && u.longitude) ? ` <span style="font-family:ui-monospace,monospace;font-size:10px;">${u.latitude.toFixed(6)}, ${u.longitude.toFixed(6)}</span>` : '';
+        addressHtml = `<div style="color:var(--text-secondary);">Pos Jaga Lingkungan</div><div style="font-size:11px;color:var(--accent-blue);margin-top:2px;">📍 ${cxName}${coordStr}</div>`;
       } else if (u.role === 'sampah') {
-        addressHtml = '<div style="color:var(--text-secondary);">TPS / Kebersihan RT</div>';
+        const coordStr = (u.latitude && u.longitude) ? ` <span style="font-family:ui-monospace,monospace;font-size:10px;">${u.latitude.toFixed(6)}, ${u.longitude.toFixed(6)}</span>` : '';
+        addressHtml = `<div style="color:var(--text-secondary);">TPS / Kebersihan RT</div><div style="font-size:11px;color:var(--accent-blue);margin-top:2px;">📍 ${cxName}${coordStr}</div>`;
       } else if (u.role === 'super_admin') {
         addressHtml = '<div style="color:var(--text-secondary);">Kantor Pengurus RT</div>';
       }

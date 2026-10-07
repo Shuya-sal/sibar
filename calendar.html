@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalender Iuran Tahunan (Demo) — SIBAR</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+  <style>
+    /* CSS Tema Apple SIBAR */
+    :root {
+      --bg-page: #f5f5f7;
+      --bg-card: #ffffff;
+      --bg-subtle: #fbfbfd;
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --border-strong: rgba(0, 0, 0, 0.16);
+      --text-primary: #1d1d1f;
+      --text-secondary: #6e6e73;
+      --text-tertiary: #86868b;
+      --accent-blue: #0071e3;
+      --accent-blue-hover: #0077ed;
+      --accent-blue-subtle: rgba(0, 113, 227, 0.08);
+      --accent-green: #34c759;
+      --accent-amber: #ff9500;
+      --accent-red: #ff3b30;
+      --badge-paid-bg: #e8f8ed;
+      --badge-paid-text: #1d7c39;
+      --badge-paid-border: rgba(52, 199, 89, 0.25);
+      --badge-unpaid-bg: #fff8ee;
+      --badge-unpaid-text: #b25e00;
+      --badge-unpaid-border: rgba(255, 149, 0, 0.25);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 18px;
+      --radius-pill: 980px;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+      --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 84px;
+    }
+
+    .app-container { display: flex; min-height: 100vh; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 260px;
+      background: #ffffff;
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand-section {
+      padding: 24px 20px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--accent-blue);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 113, 227, 0.3);
+    }
+
+    .brand-text h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+    .brand-text p { font-size: 11px; color: var(--text-tertiary); }
+
+    .nav-menu { padding: 16px 12px; flex: 1; overflow-y: auto; }
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-tertiary);
+      padding: 12px 10px 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      margin-bottom: 2px;
+    }
+
+    .nav-item:hover { background: var(--bg-subtle); color: var(--text-primary); }
+    .nav-item.active { background: var(--accent-blue-subtle); color: var(--accent-blue); font-weight: 600; }
+    .nav-item svg { width: 17px; height: 17px; stroke-width: 2; }
+
+    .sidebar-footer {
+      padding: 14px 18px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e1e4e8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .user-info { font-size: 12px; line-height: 1.3; }
+    .user-name { font-weight: 600; }
+    .role-badge {
+      display: inline-block;
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 980px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      background: #e3f2fd;
+      color: #0b57d0;
+    }
+
+    /* MAIN WRAPPER */
+    .main-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    .top-header {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-tertiary); }
+    .breadcrumb .current { color: var(--text-primary); font-weight: 600; }
+
+    .demo-pill {
+      font-size: 10.5px;
+      font-weight: 700;
+      background: #e8f0fe;
+      color: #1967d2;
+      padding: 4px 10px;
+      border-radius: 980px;
+      border: 1px solid rgba(25, 103, 210, 0.2);
+    }
+
+    .content-body { padding: 24px 28px; max-width: 1200px; width: 100%; margin: 0 auto; }
+
+    /* HERO */
+    .hero-box {
+      background: linear-gradient(135deg, #ffffff 0%, #fbfbfd 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .hero-meta h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .hero-meta p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+    .hero-tags { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .hero-tag {
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      color: var(--text-secondary);
+    }
+
+    .hero-summary {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      text-align: right;
+      min-width: 180px;
+    }
+    .hero-summary .sub { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; font-weight: 600; }
+    .hero-summary .val { font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 4px 0; }
+
+    /* CONTROLS CARD */
+    .cal-controls-card {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
+    }
+
+    .filter-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .filter-label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-tertiary); }
+
+    .pills-bar {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-subtle);
+      padding: 3px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .pill-btn {
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      border-radius: var(--radius-pill);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .pill-btn:hover { color: var(--text-primary); }
+    .pill-btn.active {
+      background: #ffffff;
+      color: var(--text-primary);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .select-input {
+      height: 38px;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-subtle);
+      font-size: 13px;
+      color: var(--text-primary);
+      outline: none;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    /* KPI METRICS */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+    .kpi-card .title { font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.03em; }
+    .kpi-card .val { font-size: 20px; font-weight: 700; color: var(--text-primary); margin: 6px 0 2px; }
+    .kpi-card .sub { font-size: 11px; color: var(--text-secondary); }
+
+    /* CALENDAR GRID */
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .month-card {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: var(--shadow-card);
+      transition: all 0.15s ease;
+    }
+    .month-card:hover {
+      box-shadow: var(--shadow-hover);
+      border-color: rgba(0, 113, 227, 0.25);
+      transform: translateY(-2px);
+    }
+    .month-card.is-current {
+      border: 2px solid var(--accent-blue);
+      box-shadow: 0 4px 14px rgba(0, 113, 227, 0.12);
+    }
+
+    .month-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .month-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+    .month-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+    .badge-status {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .badge-status.paid { background: var(--badge-paid-bg); color: var(--badge-paid-text); border: 1px solid var(--badge-paid-border); }
+    .badge-status.unpaid { background: var(--badge-unpaid-bg); color: var(--badge-unpaid-text); border: 1px solid var(--badge-unpaid-border); }
+    .badge-status.partial { background: #fff8ee; color: #b25e00; border: 1px solid rgba(255, 149, 0, 0.25); }
+    .badge-status.upcoming { background: #f2f2f7; color: var(--text-tertiary); border: 1px solid var(--border-subtle); }
+
+    .month-fees {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: var(--bg-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+    }
+    .fee-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+    }
+    .fee-status.paid { color: var(--accent-green); font-weight: 600; }
+    .fee-status.unpaid { color: var(--accent-amber); font-weight: 600; }
+
+    .month-footer {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .month-total-sub { font-size: 10px; text-transform: uppercase; color: var(--text-tertiary); font-weight: 600; }
+    .month-total-val { font-size: 13.5px; font-weight: 700; color: var(--text-primary); }
+
+    .btn-receipt {
+      padding: 5px 11px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-blue);
+      background: var(--accent-blue-subtle);
+      border: 1px solid rgba(0, 113, 227, 0.2);
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .btn-receipt:hover { background: var(--accent-blue); color: #fff; }
+
+    .btn-pay-action {
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent-blue);
+      border: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+    }
+
+    /* BOTTOM TAB BAR (MOBILE) */
+    .ios-bottom-tabbar {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-subtle);
+      z-index: 900;
+      justify-content: space-around;
+      align-items: center;
+    }
+    .tabbar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-tertiary);
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: 600;
+      flex: 1;
+      height: 100%;
+    }
+    .tabbar-item.active { color: var(--accent-blue); }
+    .tabbar-item svg { width: 20px; height: 20px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 1100px) {
+      .calendar-grid { grid-template-columns: repeat(3, 1fr); }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 860px) {
+      body { padding-bottom: 84px !important; }
+      .sidebar { display: none !important; }
+      .ios-bottom-tabbar { display: flex !important; }
+      .content-body { padding: 14px 16px; }
+      .calendar-grid { grid-template-columns: 1fr; gap: 12px; }
+      .kpi-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .cal-controls-card { flex-direction: column; align-items: stretch; gap: 12px; }
+      .filter-group { flex-direction: column; align-items: stretch; }
+      .pills-bar { overflow-x: auto; }
+      .hero-box { flex-direction: column; align-items: stretch; }
+      .hero-summary { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand-section">
+      <div class="brand-logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>SIBAR</h1>
+        <p>Demo GitHub Pages</p>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <div class="nav-label">Navigasi Utama</div>
+      <a href="dashboard.html" class="nav-item" id="navDashboardLink">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+        Dashboard Warga
+      </a>
+      <a href="monitoring.html" class="nav-item" id="navMonitoringLink">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        Peta Rumah
+      </a>
+      <a href="calendar.html" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+        Kalender &amp; Rekap Tahunan
+      </a>
+
+      <div class="nav-label" id="adminMenuLabel">Administrasi</div>
+      <a href="users.html" class="nav-item" id="navUsersLink">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Kelola Akun
+      </a>
+
+      <div class="nav-label">Sesi</div>
+      <a href="login.html" class="nav-item" style="color:var(--accent-red);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Ganti Akun / Keluar
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="avatar" id="sidebarAvatar">US</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarUserName">Pengguna Demo</div>
+        <div class="role-badge" id="sidebarUserRole">WARGA</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <main class="main-wrapper">
+    <header class="top-header">
+      <div class="breadcrumb">
+        <span>SIBAR</span>
+        <span>/</span>
+        <span class="current">Kalender &amp; Rekap Tahunan</span>
+      </div>
+      <div>
+        <span class="demo-pill">Client-Side Demo (GitHub Pages)</span>
+      </div>
+    </header>
+
+    <div class="content-body">
+      <!-- HERO -->
+      <section class="hero-box">
+        <div class="hero-meta">
+          <h2 id="heroTitle">Kalender Iuran Tahunan 2026</h2>
+          <p id="heroDesc">Rekapitulasi status pembayaran 12 bulan untuk unit rumah warga.</p>
+          <div class="hero-tags" id="heroTags">
+            <span class="hero-tag" id="tagUnit">Unit: Blok B3 / No. 12</span>
+            <span class="hero-tag" id="tagHuni">Status: Tetap</span>
+            <span class="hero-tag" id="tagCompliance">Kepatuhan: 75%</span>
+          </div>
+        </div>
+        <div class="hero-summary">
+          <div class="sub">Total Lunas Tahun Ini</div>
+          <div class="val" id="summaryPaidMonths">9/12 <span style="font-size:13px; color:var(--text-tertiary); font-weight:500;">Bulan</span></div>
+          <div class="badge-status paid" id="summaryStatusBadge">Semua Terpantau</div>
+        </div>
+      </section>
+
+      <!-- CONTROLS CARD -->
+      <div class="cal-controls-card">
+        <!-- Pilihan Tahun -->
+        <div class="filter-group">
+          <span class="filter-label">Tahun:</span>
+          <div class="pills-bar">
+            <button type="button" class="pill-btn active" id="btnYear2026" onclick="setYear(2026)">2026 (Aktif)</button>
+            <button type="button" class="pill-btn" id="btnYear2025" onclick="setYear(2025)">2025 (Arsip)</button>
+          </div>
+        </div>
+
+        <!-- Pilihan Rumah (Bisa diakses siapa saja di demo) -->
+        <div class="filter-group">
+          <span class="filter-label">Pilih Unit Rumah:</span>
+          <select id="houseSelect" class="select-input" onchange="onHouseChange(this.value)">
+            <!-- Options populated by JS -->
+          </select>
+        </div>
+
+        <!-- Filter Bulan -->
+        <div class="filter-group">
+          <span class="filter-label">Tampilan:</span>
+          <div class="pills-bar">
+            <button type="button" class="pill-btn active" id="btnMonthAll" onclick="setMonth('all')">12 Bulan</button>
+            <button type="button" class="pill-btn" id="btnMonthCur" onclick="setMonth(10)">Bulan Ini (Okt)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI ROW -->
+      <section class="kpi-row">
+        <div class="kpi-card">
+          <div class="title">Total Kewajiban Setahun</div>
+          <div class="val" id="kpiTotalDue">Rp 1.500.000</div>
+          <div class="sub">12 bulan x 3 pos iuran wajib</div>
+        </div>
+        <div class="kpi-card">
+          <div class="title">Sudah Dilunasi</div>
+          <div class="val" id="kpiTotalPaid" style="color:var(--accent-green);">Rp 1.125.000</div>
+          <div class="sub" id="kpiPaidMonths">9 dari 12 bulan lunas</div>
+        </div>
+        <div class="kpi-card">
+          <div class="title">Sisa Tertunggak</div>
+          <div class="val" id="kpiTotalUnpaid" style="color:var(--accent-amber);">Rp 375.000</div>
+          <div class="sub" id="kpiUnpaidSub">Perlu penyelesaian</div>
+        </div>
+        <div class="kpi-card">
+          <div class="title">Tingkat Kepatuhan</div>
+          <div class="val" id="kpiCompliance">75%</div>
+          <div class="sub">
+            <div style="height:5px; background:#e5e5ea; border-radius:10px; margin-top:4px; overflow:hidden;">
+              <div id="kpiProgressBar" style="height:100%; width:75%; background:var(--accent-blue); border-radius:10px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- GRID KALENDER 12 BULAN -->
+      <div class="calendar-grid" id="calendarGridContainer">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- BOTTOM TAB BAR (MOBILE) -->
+<nav class="ios-bottom-tabbar">
+  <a href="dashboard.html" class="tabbar-item" id="mobDashboardLink">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+    <span>Dashboard</span>
+  </a>
+  <a href="monitoring.html" class="tabbar-item" id="mobMonitoringLink">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+    <span>Peta</span>
+  </a>
+  <a href="calendar.html" class="tabbar-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+    <span>Kalender</span>
+  </a>
+  <a href="users.html" class="tabbar-item" id="mobUsersLink">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span>Akun</span>
+  </a>
+  <a href="login.html" class="tabbar-item" style="color:var(--accent-red);">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    <span>Keluar</span>
+  </a>
+</nav>
+
+<script src="sibar-demo-data.js"></script>
+<script>
+  let currentYear = 2026;
+  let currentMonthFilter = 'all';
+  let selectedHouseId = 4; // Default B3-12
+
+  const user = SibarData.currentUser();
+  if (user) {
+    document.getElementById('sidebarAvatar').innerText = (user.name || user.username).substring(0, 2).toUpperCase();
+    document.getElementById('sidebarUserName').innerText = user.name || user.username;
+    document.getElementById('sidebarUserRole').innerText = SibarData.roleLabel(user.role);
+
+    if (user.role === 'warga' && user.house_id) {
+      selectedHouseId = user.house_id;
+      // Sembunyikan link monitoring & users jika bukan petugas
+      document.getElementById('navMonitoringLink').style.display = 'none';
+      document.getElementById('navUsersLink').style.display = 'none';
+      document.getElementById('adminMenuLabel').style.display = 'none';
+      document.getElementById('mobMonitoringLink').style.display = 'none';
+      document.getElementById('mobUsersLink').style.display = 'none';
+    } else {
+      document.getElementById('navDashboardLink').style.display = 'none';
+      document.getElementById('mobDashboardLink').style.display = 'none';
+    }
+  }
+
+  function initHouses() {
+    const db = SibarData.load();
+    const select = document.getElementById('houseSelect');
+    select.innerHTML = '';
+    db.houses.forEach(h => {
+      const opt = document.createElement('option');
+      opt.value = h.id;
+      opt.textContent = `Blok ${h.block} / No. ${h.number} — ${h.owner} (${h.lane})`;
+      if (h.id === selectedHouseId) opt.selected = true;
+      select.appendChild(opt);
+    });
+  }
+
+  function onHouseChange(val) {
+    selectedHouseId = Number(val);
+    renderCalendar();
+  }
+
+  function setYear(y) {
+    currentYear = y;
+    document.getElementById('btnYear2026').classList.toggle('active', y === 2026);
+    document.getElementById('btnYear2025').classList.toggle('active', y === 2025);
+    renderCalendar();
+  }
+
+  function setMonth(m) {
+    currentMonthFilter = m;
+    document.getElementById('btnMonthAll').classList.toggle('active', m === 'all');
+    document.getElementById('btnMonthCur').classList.toggle('active', m === 10);
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    const db = SibarData.load();
+    const house = db.houses.find(h => h.id === selectedHouseId) || db.houses[0];
+    const feeMap = {};
+    db.fee_types.forEach(f => feeMap[f.id] = f);
+
+    document.getElementById('heroTitle').innerText = `Kalender Iuran Tahunan ${currentYear}`;
+    document.getElementById('heroDesc').innerHTML = `Rekapitulasi 12 bulan untuk unit <strong>Blok ${house.block} / No. ${house.number}</strong> (${house.owner}) — ${house.lane}.`;
+    document.getElementById('tagUnit').innerText = `Unit: Blok ${house.block}/${house.number}`;
+    document.getElementById('tagHuni').innerText = `Status: ${house.status_huni || 'Tetap'}`;
+
+    // Kelompokkan tagihan 12 bulan
+    const monthData = {};
+    for (let m = 1; m <= 12; m++) {
+      monthData[m] = {
+        bills: [],
+        totalDue: 0,
+        totalPaid: 0,
+        paidCount: 0,
+        unpaidCount: 0,
+        receipt: null
+      };
+    }
+
+    db.bills.filter(b => b.house_id === house.id && b.year === currentYear).forEach(b => {
+      const m = b.month;
+      if (monthData[m]) {
+        monthData[m].bills.push(b);
+        monthData[m].totalDue += b.amount;
+        if (b.status === 'paid') {
+          monthData[m].totalPaid += b.amount;
+          monthData[m].paidCount++;
+          const pay = db.payments.find(p => p.bill_id === b.id);
+          if (pay && !monthData[m].receipt) monthData[m].receipt = pay.receipt;
+        } else {
+          monthData[m].unpaidCount++;
+        }
+      }
+    });
+
+    let annualDue = 0;
+    let annualPaid = 0;
+    let paidMonthsCount = 0;
+
+    for (let m = 1; m <= 12; m++) {
+      annualDue += monthData[m].totalDue;
+      annualPaid += monthData[m].totalPaid;
+      if (monthData[m].bills.length > 0 && monthData[m].unpaidCount === 0) {
+        paidMonthsCount++;
+      }
+    }
+
+    const annualUnpaid = annualDue - annualPaid;
+    const compliance = annualDue > 0 ? Math.round((annualPaid / annualDue) * 100) : 0;
+
+    document.getElementById('tagCompliance').innerText = `Kepatuhan: ${compliance}%`;
+    document.getElementById('summaryPaidMonths').innerHTML = `${paidMonthsCount}/12 <span style="font-size:13px; color:var(--text-tertiary); font-weight:500;">Bulan</span>`;
+    document.getElementById('summaryStatusBadge').className = `badge-status ${annualUnpaid === 0 ? 'paid' : 'unpaid'}`;
+    document.getElementById('summaryStatusBadge').innerText = (annualUnpaid === 0) ? 'Semua bulan lunas' : `Sisa tertunggak: ${SibarData.rupiah(annualUnpaid)}`;
+
+    document.getElementById('kpiTotalDue').innerText = SibarData.rupiah(annualDue);
+    document.getElementById('kpiTotalPaid').innerText = SibarData.rupiah(annualPaid);
+    document.getElementById('kpiPaidMonths').innerText = `${paidMonthsCount} dari 12 bulan lunas`;
+    document.getElementById('kpiTotalUnpaid').innerText = SibarData.rupiah(annualUnpaid);
+    document.getElementById('kpiCompliance').innerText = `${compliance}%`;
+    document.getElementById('kpiProgressBar').style.width = `${compliance}%`;
+
+    // Render Grid
+    const container = document.getElementById('calendarGridContainer');
+    container.innerHTML = '';
+
+    const monthsToShow = (currentMonthFilter === 'all') ? Array.from({length: 12}, (_, i) => i + 1) : [Number(currentMonthFilter)];
+
+    monthsToShow.forEach(m => {
+      const item = monthData[m];
+      const isCur = (currentYear === 2026 && m === 10);
+      let statusKey = 'empty';
+      let statusLabel = 'Belum Terbit';
+
+      if (item.bills.length === 0) {
+        statusKey = 'empty';
+        statusLabel = 'Belum Terbit';
+      } else if (item.unpaidCount === 0) {
+        statusKey = 'paid';
+        statusLabel = 'Lunas';
+      } else if (item.paidCount > 0 && item.unpaidCount > 0) {
+        statusKey = 'partial';
+        statusLabel = 'Sebagian';
+      } else {
+        if (currentYear === 2026 && m > 10) {
+          statusKey = 'upcoming';
+          statusLabel = 'Mendatang';
+        } else {
+          statusKey = 'unpaid';
+          statusLabel = 'Belum Lunas';
+        }
+      }
+
+      let feesHtml = '';
+      if (item.bills.length === 0) {
+        feesHtml = '<div style="font-size:11.5px; color:var(--text-tertiary); text-align:center; padding:8px 0;">Belum ada data tagihan</div>';
+      } else {
+        item.bills.forEach(b => {
+          const f = feeMap[b.fee_type_id] || { name: 'Iuran', icon: '📋' };
+          feesHtml += `
+            <div class="fee-row">
+              <span>${f.icon} ${f.name}</span>
+              <span class="fee-status ${b.status === 'paid' ? 'paid' : 'unpaid'}">
+                ${b.status === 'paid' ? '✓ Lunas' : SibarData.rupiah(b.amount)}
+              </span>
+            </div>
+          `;
+        });
+      }
+
+      let footerBtnHtml = '';
+      if (statusKey === 'paid' && item.receipt) {
+        footerBtnHtml = `
+          <button type="button" class="btn-receipt" onclick="alert('Kwitansi #${item.receipt}\\nUnit: Blok ${house.block}/${house.number}\\nPeriode: ${SibarData.MONTHS[m]} ${currentYear}\\nStatus: Lunas Terverifikasi.')">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Kwitansi
+          </button>
+        `;
+      } else if (['unpaid', 'partial'].includes(statusKey)) {
+        footerBtnHtml = `
+          <button type="button" class="btn-pay-action" onclick="payMonthBills(${m})">
+            Bayar
+          </button>
+        `;
+      } else {
+        footerBtnHtml = `<span style="font-size:11px; color:var(--text-tertiary);">—</span>`;
+      }
+
+      const card = document.createElement('div');
+      card.className = `month-card ${isCur ? 'is-current' : ''}`;
+      card.innerHTML = `
+        <div>
+          <div class="month-header">
+            <div>
+              <div class="month-name">${SibarData.MONTHS[m]}</div>
+              <div class="month-sub">${currentYear} ${isCur ? '· <em>Bulan Berjalan</em>' : ''}</div>
+            </div>
+            <span class="badge-status ${statusKey}">${statusLabel}</span>
+          </div>
+          <div class="month-fees" style="margin-top:12px;">
+            ${feesHtml}
+          </div>
+        </div>
+        <div class="month-footer">
+          <div>
+            <div class="month-total-sub">Total Iuran</div>
+            <div class="month-total-val">${SibarData.rupiah(item.totalDue)}</div>
+          </div>
+          <div>${footerBtnHtml}</div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function payMonthBills(month) {
+    if (!confirm(`Konfirmasi pembayaran iuran untuk bulan ${SibarData.MONTHS[month]} ${currentYear}?`)) return;
+    const db = SibarData.load();
+    const bills = db.bills.filter(b => b.house_id === selectedHouseId && b.year === currentYear && b.month === month && b.status === 'unpaid');
+    bills.forEach(b => {
+      SibarData.payBill(b.id, 'QRIS Instant Demo');
+    });
+    alert(`Pembayaran bulan ${SibarData.MONTHS[month]} berhasil diselesaikan!`);
+    renderCalendar();
+  }
+
+  initHouses();
+  renderCalendar();
+</script>
+
+</body>
+</html>

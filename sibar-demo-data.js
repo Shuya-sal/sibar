@@ -4,27 +4,31 @@ const SIBAR = (() => {
   const DB_KEY = 'sibar_demo_db_v1';
 
   const seed = {
+    complexes: [
+      { id: 1, code: 'graha-asri',  name: 'Komplek Graha Asri RT 04',        address: 'Jl. Cempaka Raya, RT 04 / RW 08', latitude: -6.208763, longitude: 106.845599, city: 'Jakarta Selatan' },
+      { id: 2, code: 'bukit-indah', name: 'Komplek Bukit Indah Asri RT 05',  address: 'Jl. Bukit Indah Raya, RT 05 / RW 08', latitude: -6.215500, longitude: 106.852000, city: 'Jakarta Selatan' }
+    ],
     houses: [
-      { id: 1, block: 'A1', number: '05', lane: 'Jalur Utama Timur',  status_huni: 'tetap' },
-      { id: 2, block: 'A1', number: '06', lane: 'Jalur Utama Timur',  status_huni: 'kontrak' },
-      { id: 3, block: 'B3', number: '11', lane: 'Jalur Utama Tengah', status_huni: 'tetap' },
-      { id: 4, block: 'B3', number: '12', lane: 'Jalur Utama Tengah', status_huni: 'tetap' },
-      { id: 5, block: 'B3', number: '13', lane: 'Jalur Utama Tengah', status_huni: 'tetap' },
-      { id: 6, block: 'C2', number: '08', lane: 'Jalur Selatan',      status_huni: 'kontrak' },
-      { id: 7, block: 'C2', number: '09', lane: 'Jalur Selatan',      status_huni: 'tetap' }
+      { id: 1, complex_id: 1, block: 'A1', number: '05', lane: 'Jalur Utama Timur',  status_huni: 'tetap',   latitude: -6.208763, longitude: 106.845599 },
+      { id: 2, complex_id: 1, block: 'A1', number: '06', lane: 'Jalur Utama Timur',  status_huni: 'kontrak', latitude: -6.208801, longitude: 106.845620 },
+      { id: 3, complex_id: 1, block: 'B3', number: '11', lane: 'Jalur Utama Tengah', status_huni: 'tetap',   latitude: -6.208910, longitude: 106.845700 },
+      { id: 4, complex_id: 1, block: 'B3', number: '12', lane: 'Jalur Utama Tengah', status_huni: 'tetap',   latitude: -6.208945, longitude: 106.845735 },
+      { id: 5, complex_id: 1, block: 'B3', number: '13', lane: 'Jalur Utama Tengah', status_huni: 'tetap',   latitude: -6.208980, longitude: 106.845770 },
+      { id: 6, complex_id: 1, block: 'C2', number: '08', lane: 'Jalur Selatan',      status_huni: 'kontrak', latitude: -6.209100, longitude: 106.845850 },
+      { id: 7, complex_id: 1, block: 'C2', number: '09', lane: 'Jalur Selatan',      status_huni: 'tetap',   latitude: -6.209150, longitude: 106.845890 }
     ],
     users: [
-      { id: 1, house_id: 1, username: 'a1-05', role: 'warga', name: 'Bpk. Budi Santoso',   phone: '081298765432' },
-      { id: 2, house_id: 2, username: 'a1-06', role: 'warga', name: 'Ibu Dewi Lestari',    phone: '081311223344' },
-      { id: 3, house_id: 3, username: 'b3-11', role: 'warga', name: 'Bpk. Agus Wijaya',    phone: '081355667788' },
-      { id: 4, house_id: 4, username: 'b3-12', role: 'warga', name: 'Bpk. Hendra Pratama', phone: '081234567890' },
-      { id: 5, house_id: 5, username: 'b3-13', role: 'warga', name: 'Bpk. Rudi Hartono',   phone: '081399887766' },
-      { id: 6, house_id: 6, username: 'c2-08', role: 'warga', name: 'Ibu Siti Rahma',      phone: '081345678901' },
-      { id: 7, house_id: 7, username: 'c2-09', role: 'warga', name: 'Bpk. Joko Susilo',    phone: '081377665544' },
-      { id: 8, house_id: null, username: 'satpam_siang', role: 'satpam_siang', name: 'Bpk. Tono Wibowo',   phone: '081500011122' },
-      { id: 9, house_id: null, username: 'satpam_malam', role: 'satpam_malam', name: 'Bpk. Slamet Riyadi', phone: '081500033344' },
-      { id: 10, house_id: null, username: 'sampah', role: 'sampah', name: 'Bpk. Darma Putra', phone: '081500055566' },
-      { id: 11, house_id: null, username: 'superadmin', role: 'super_admin', name: 'Admin RT 04', phone: '081500077788' }
+      { id: 1,  house_id: 1,    complex_id: 1, username: 'a1-05',        role: 'warga',        name: 'Bpk. Budi Santoso',   phone: '081298765432', latitude: -6.208763, longitude: 106.845599 },
+      { id: 2,  house_id: 2,    complex_id: 1, username: 'a1-06',        role: 'warga',        name: 'Ibu Dewi Lestari',    phone: '081311223344', latitude: -6.208801, longitude: 106.845620 },
+      { id: 3,  house_id: 3,    complex_id: 1, username: 'b3-11',        role: 'warga',        name: 'Bpk. Agus Wijaya',    phone: '081355667788', latitude: -6.208910, longitude: 106.845700 },
+      { id: 4,  house_id: 4,    complex_id: 1, username: 'b3-12',        role: 'warga',        name: 'Bpk. Hendra Pratama', phone: '081234567890', latitude: -6.208945, longitude: 106.845735 },
+      { id: 5,  house_id: 5,    complex_id: 1, username: 'b3-13',        role: 'warga',        name: 'Bpk. Rudi Hartono',   phone: '081399887766', latitude: -6.208980, longitude: 106.845770 },
+      { id: 6,  house_id: 6,    complex_id: 1, username: 'c2-08',        role: 'warga',        name: 'Ibu Siti Rahma',      phone: '081345678901', latitude: -6.209100, longitude: 106.845850 },
+      { id: 7,  house_id: 7,    complex_id: 1, username: 'c2-09',        role: 'warga',        name: 'Bpk. Joko Susilo',    phone: '081377665544', latitude: -6.209150, longitude: 106.845890 },
+      { id: 8,  house_id: null, complex_id: 1, username: 'satpam_siang', role: 'satpam_siang', name: 'Bpk. Tono Wibowo',    phone: '081500011122', latitude: -6.208763, longitude: 106.845599 },
+      { id: 9,  house_id: null, complex_id: 1, username: 'satpam_malam', role: 'satpam_malam', name: 'Bpk. Slamet Riyadi',  phone: '081500033344', latitude: -6.208763, longitude: 106.845599 },
+      { id: 10, house_id: null, complex_id: 1, username: 'sampah',       role: 'sampah',       name: 'Bpk. Darma Putra',    phone: '081500055566', latitude: -6.208763, longitude: 106.845599 },
+      { id: 11, house_id: null, complex_id: 1, username: 'superadmin',   role: 'super_admin',  name: 'Admin RT 04',          phone: '081500077788', latitude: -6.208763, longitude: 106.845599 }
     ],
     fee_types: [
       { id: 1, code: 'jaga_malam', name: 'Iuran Jaga Malam', amount: 50000, icon: '🌙', description: 'Honor ronda malam (22:00 - 05:00), senter, dan pemeliharaan pos ronda kamling.' },
@@ -96,11 +100,108 @@ const SIBAR = (() => {
 
   function load() {
     const raw = localStorage.getItem(DB_KEY);
+    let db;
     if (!raw) {
-      localStorage.setItem(DB_KEY, JSON.stringify(seed));
-      return JSON.parse(JSON.stringify(seed));
+      db = JSON.parse(JSON.stringify(seed));
+    } else {
+      db = JSON.parse(raw);
     }
-    return JSON.parse(raw);
+
+    // Pastikan data 12 bulan tahun 2026 & 2025 tersedia
+    ensureAnnualData(db);
+    return db;
+  }
+
+  function ensureAnnualData(db) {
+    if (!db.bills) db.bills = [];
+    if (!db.payments) db.payments = [];
+
+    const hasJan2026 = db.bills.some(b => b.year === 2026 && b.month === 1);
+    if (!hasJan2026) {
+      let maxBillId = db.bills.reduce((m, b) => Math.max(m, b.id || 0), 0);
+      let maxPayId = db.payments.reduce((m, p) => Math.max(m, p.id || 0), 0);
+      const feeAmounts = { 1: 50000, 2: 40000, 3: 35000 };
+      const houses = [1, 2, 3, 4, 5, 6, 7];
+
+      // Bulan 1..6 tahun 2026: semua lunas
+      for (let m = 1; m <= 6; m++) {
+        for (const h of houses) {
+          for (const fId of [1, 2, 3]) {
+            maxBillId++;
+            const billId = maxBillId;
+            db.bills.push({
+              id: billId,
+              house_id: h,
+              fee_type_id: fId,
+              year: 2026,
+              month: m,
+              amount: feeAmounts[fId],
+              status: 'paid',
+              due: `2026-${String(m).padStart(2,'0')}-15`
+            });
+            maxPayId++;
+            db.payments.push({
+              id: maxPayId,
+              bill_id: billId,
+              receipt: `INV-2026${String(m).padStart(2,'0')}-H${String(h).padStart(2,'0')}-${fId}`,
+              amount: feeAmounts[fId],
+              method: 'BCA Virtual Account',
+              paid_at: `2026-${String(m).padStart(2,'0')}-05 10:00`
+            });
+          }
+        }
+      }
+
+      // Bulan 11..12 tahun 2026: belum jatuh tempo (unpaid)
+      for (const m of [11, 12]) {
+        for (const h of houses) {
+          for (const fId of [1, 2, 3]) {
+            maxBillId++;
+            db.bills.push({
+              id: maxBillId,
+              house_id: h,
+              fee_type_id: fId,
+              year: 2026,
+              month: m,
+              amount: feeAmounts[fId],
+              status: 'unpaid',
+              due: `2026-${m}-15`
+            });
+          }
+        }
+      }
+
+      // Tahun 2025: Arsip 12 bulan lunas
+      for (let m = 1; m <= 12; m++) {
+        for (const h of houses) {
+          for (const fId of [1, 2, 3]) {
+            maxBillId++;
+            const billId = maxBillId;
+            db.bills.push({
+              id: billId,
+              house_id: h,
+              fee_type_id: fId,
+              year: 2025,
+              month: m,
+              amount: feeAmounts[fId],
+              status: 'paid',
+              due: `2025-${String(m).padStart(2,'0')}-15`
+            });
+            maxPayId++;
+            db.payments.push({
+              id: maxPayId,
+              bill_id: billId,
+              receipt: `INV-2025${String(m).padStart(2,'0')}-H${String(h).padStart(2,'0')}-${fId}`,
+              amount: feeAmounts[fId],
+              method: 'QRIS Instant',
+              paid_at: `2025-${String(m).padStart(2,'0')}-03 14:00`
+            });
+          }
+        }
+      }
+
+      save(db);
+    }
   }
 
   function save(db) {
@@ -254,3 +355,9 @@ const SIBAR = (() => {
     currentUser, MONTHS, addUser, updateUser, deleteUser
   };
 })();
+
+// Alias untuk kompatibilitas
+if (typeof window !== 'undefined') {
+  window.SIBAR = SIBAR;
+  window.SibarData = SIBAR;
+}

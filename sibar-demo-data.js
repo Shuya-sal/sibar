@@ -9,13 +9,13 @@ const SIBAR = (() => {
       { id: 2, code: 'bukit-indah', name: 'Komplek Bukit Indah Asri RT 05',  address: 'Jl. Bukit Indah Raya, RT 05 / RW 08', latitude: -6.215500, longitude: 106.852000, city: 'Jakarta Selatan' }
     ],
     houses: [
-      { id: 1, complex_id: 1, block: 'A1', number: '05', lane: 'Jalur Utama Timur',  status_huni: 'tetap',   latitude: -6.208763, longitude: 106.845599 },
-      { id: 2, complex_id: 1, block: 'A1', number: '06', lane: 'Jalur Utama Timur',  status_huni: 'kontrak', latitude: -6.208801, longitude: 106.845620 },
-      { id: 3, complex_id: 1, block: 'B3', number: '11', lane: 'Jalur Utama Tengah', status_huni: 'tetap',   latitude: -6.208910, longitude: 106.845700 },
-      { id: 4, complex_id: 1, block: 'B3', number: '12', lane: 'Jalur Utama Tengah', status_huni: 'tetap',   latitude: -6.208945, longitude: 106.845735 },
-      { id: 5, complex_id: 1, block: 'B3', number: '13', lane: 'Jalur Utama Tengah', status_huni: 'tetap',   latitude: -6.208980, longitude: 106.845770 },
-      { id: 6, complex_id: 1, block: 'C2', number: '08', lane: 'Jalur Selatan',      status_huni: 'kontrak', latitude: -6.209100, longitude: 106.845850 },
-      { id: 7, complex_id: 1, block: 'C2', number: '09', lane: 'Jalur Selatan',      status_huni: 'tetap',   latitude: -6.209150, longitude: 106.845890 }
+      { id: 1, complex_id: 1, owner: 'Bpk. Budi Santoso',   block: 'A1', number: '05', lane: 'Jalur Utama Timur',  status_huni: 'tetap',   latitude: -6.208763, longitude: 106.845599 },
+      { id: 2, complex_id: 1, owner: 'Ibu Dewi Lestari',    block: 'A1', number: '06', lane: 'Jalur Utama Timur',  status_huni: 'kontrak', latitude: -6.208801, longitude: 106.845620 },
+      { id: 3, complex_id: 1, owner: 'Bpk. Agus Wijaya',    block: 'B3', number: '11', lane: 'Jalur Utama Tengah', status_huni: 'tetap',   latitude: -6.208910, longitude: 106.845700 },
+      { id: 4, complex_id: 1, owner: 'Bpk. Hendra Pratama', block: 'B3', number: '12', lane: 'Jalur Utama Tengah', status_huni: 'tetap',   latitude: -6.208945, longitude: 106.845735 },
+      { id: 5, complex_id: 1, owner: 'Bpk. Rudi Hartono',   block: 'B3', number: '13', lane: 'Jalur Utama Tengah', status_huni: 'tetap',   latitude: -6.208980, longitude: 106.845770 },
+      { id: 6, complex_id: 1, owner: 'Ibu Siti Rahma',      block: 'C2', number: '08', lane: 'Jalur Selatan',      status_huni: 'kontrak', latitude: -6.209100, longitude: 106.845850 },
+      { id: 7, complex_id: 1, owner: 'Bpk. Joko Susilo',    block: 'C2', number: '09', lane: 'Jalur Selatan',      status_huni: 'tetap',   latitude: -6.209150, longitude: 106.845890 }
     ],
     users: [
       { id: 1,  house_id: 1,    complex_id: 1, username: 'a1-05',        role: 'warga',        name: 'Bpk. Budi Santoso',   phone: '081298765432', latitude: -6.208763, longitude: 106.845599 },

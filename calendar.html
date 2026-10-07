@@ -664,9 +664,12 @@
     const select = document.getElementById('houseSelect');
     select.innerHTML = '';
     db.houses.forEach(h => {
+      // Cari nama KK dari tabel users
+      const kk = db.users.find(u => u.house_id === h.id && u.role === 'warga');
+      const ownerName = h.owner || (kk ? kk.name : 'Kosong');
       const opt = document.createElement('option');
       opt.value = h.id;
-      opt.textContent = `Blok ${h.block} / No. ${h.number} — ${h.owner} (${h.lane})`;
+      opt.textContent = `Blok ${h.block} / No. ${h.number} — ${ownerName} (${h.lane})`;
       if (h.id === selectedHouseId) opt.selected = true;
       select.appendChild(opt);
     });
@@ -697,8 +700,12 @@
     const feeMap = {};
     db.fee_types.forEach(f => feeMap[f.id] = f);
 
+    // Nama KK dari users atau field owner
+    const kkUser = db.users.find(u => u.house_id === house.id && u.role === 'warga');
+    const ownerName = house.owner || (kkUser ? kkUser.name : 'Belum Terdaftar');
+
     document.getElementById('heroTitle').innerText = `Kalender Iuran Tahunan ${currentYear}`;
-    document.getElementById('heroDesc').innerHTML = `Rekapitulasi 12 bulan untuk unit <strong>Blok ${house.block} / No. ${house.number}</strong> (${house.owner}) — ${house.lane}.`;
+    document.getElementById('heroDesc').innerHTML = `Rekapitulasi 12 bulan untuk unit <strong>Blok ${house.block} / No. ${house.number}</strong> (${ownerName}) — ${house.lane}.`;
     document.getElementById('tagUnit').innerText = `Unit: Blok ${house.block}/${house.number}`;
     document.getElementById('tagHuni').innerText = `Status: ${house.status_huni || 'Tetap'}`;
 

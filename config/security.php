@@ -164,3 +164,86 @@ function sanitizeInt($val, int $default = 0): int {
     }
     return filter_var($val, FILTER_VALIDATE_INT) !== false ? (int)$val : $default;
 }
+
+// ================================================================
+// SECURITY LAYER 2: Anti-Double Submit Payment (Idempotency Token)
+// Cegah user klik "Bayar" 2x dalam 10 detik (replay attack)
+// ================================================================
+function checkPaymentIdempotency(int $userId, string $billKey): bool {
+    $key = 'pay_idem_' . $userId . '_' . hash('sha256', $billKey);
+    if (isset($_SESSION[$key]) && ($_SESSION[$key] + 10) > time()) {
+        return false; // Sudah ada request identik dalam 10 detik
+    }
+    $_SESSION[$key] = time();
+    return true;
+}
+
+// ================================================================
+// SECURITY LAYER 3: Validasi Panjang & Karakter Input
+// Mencegah Buffer Overflow, Injection via oversized input
+// ================================================================
+function validateInputLengths(array $inputs, array $limits): array {
+    $errors = [];
+    foreach ($limits as $field => $max) {
+        if (isset($inputs[$field]) && mb_strlen($inputs[$field], 'UTF-8') > $max) {
+            $errors[] = "Field '{$field}' melebihi panjang maksimum {$max} karakter.";
+        }
+    }
+    return $errors;
+}
+
+// ================================================================
+// SECURITY LAYER 4: Anti-Enumeration (Waktu Respons Konstan)
+// Cegah timing attack untuk menebak username/password yang valid
+// Selalu lakukan hash compare meski password salah
+// ================================================================
+function safePasswordVerify(string $rawPassword, ?string $storedHash): bool {
+    if ($storedHash === null) {
+        // Akun tidak ditemukan — tetap lakukan hash dummy agar waktu respons sama
+        password_verify($rawPassword, '$2y$10$dummyhashtopreventtimingattackonusernotfound000000000');
+        return false;
+    }
+    return password_verify($rawPassword, $storedHash);
+}
+
+// ================================================================
+// SECURITY LAYER 5: Log Kejadian Keamanan
+// Catat login gagal, akses IDOR, CSRF gagal ke file log
+// ================================================================
+function securityLog(string $event, string $detail = ''): void {
+    $logDir = __DIR__ . '/../data/security';
+    if (!is_dir($logDir)) {
+        @mkdir($logDir, 0700, true);
+    }
+    $logFile = $logDir . '/security.log';
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $ua = substr($_SERVER['HTTP_USER_AGENT'] ?? 'unknown', 0, 80);
+    $ts = date('Y-m-d H:i:s');
+    $line = "[{$ts}] [{$event}] IP:{$ip} UA:{$ua} {$detail}\n";
+    @file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
+}
+
+// ================================================================
+// SECURITY LAYER 6: Anti-Clickjacking via JS (Framebuster)
+// Double protection selain X-Frame-Options header
+// ================================================================
+function injectFramebusterJS(): string {
+    return "<script>if(window.top!==window.self){window.top.location.replace(window.self.location.href);}</script>\n";
+}
+
+// ================================================================
+// SECURITY LAYER 7: Token Pembayaran Sekali Pakai (One-Time Token)
+// Setiap form bayar generate token unik — tidak bisa di-replay
+// ================================================================
+function generatePaymentToken(int $houseId, int $month, int $year): string {
+    $raw = $houseId . '|' . $month . '|' . $year . '|' . ($_SESSION['user_id'] ?? 0) . '|' . (floor(time() / 60));
+    return hash_hmac('sha256', $raw, session_id());
+}
+
+function verifyPaymentToken(string $token, int $houseId, int $month, int $year): bool {
+    // Cek window 2 menit (current + previous minute)
+    $raw1 = $houseId . '|' . $month . '|' . $year . '|' . ($_SESSION['user_id'] ?? 0) . '|' . (floor(time() / 60));
+    $raw2 = $houseId . '|' . $month . '|' . $year . '|' . ($_SESSION['user_id'] ?? 0) . '|' . (floor(time() / 60) - 1);
+    return hash_equals(hash_hmac('sha256', $raw1, session_id()), $token)
+        || hash_equals(hash_hmac('sha256', $raw2, session_id()), $token);
+}

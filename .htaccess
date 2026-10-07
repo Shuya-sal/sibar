@@ -30,3 +30,42 @@ Options -Indexes
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
     Header unset X-Powered-By
 </IfModule>
+
+# 5. Force HTTPS (HSTS) — aktifkan saat di server HTTPS
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} !^localhost [NC]
+    RewriteCond %{HTTP_HOST} !^127\. [NC]
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# 6. HSTS Header (1 tahun, termasuk subdomain)
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+</IfModule>
+
+# 7. Cegah Path Traversal — blokir request dengan ../ atau %2e
+<IfModule mod_rewrite.c>
+    RewriteCond %{QUERY_STRING} \.\.[/\\] [NC,OR]
+    RewriteCond %{QUERY_STRING} %2e%2e [NC,OR]
+    RewriteCond %{REQUEST_URI} \.\.[/\\] [NC]
+    RewriteRule .* - [F,L]
+</IfModule>
+
+# 8. Blokir User-Agent Kosong & Scanner Otomatis
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTP_USER_AGENT} ^$ [OR]
+    RewriteCond %{HTTP_USER_AGENT} (nikto|sqlmap|havij|masscan|nessus|nmap|burpsuite|metasploit|acunetix|w3af|dirbuster|hydra|medusa) [NC]
+    RewriteRule .* - [F,L]
+</IfModule>
+
+# 9. Batasi Ukuran Request (Anti-Upload Bomb / DoS)
+LimitRequestBody 5242880
+
+# 10. Nonaktifkan Method HTTP Berbahaya
+<LimitExcept GET POST>
+    Require all denied
+</LimitExcept>
+
+# 11. Sembunyikan versi Apache
+ServerSignature Off

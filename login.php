@@ -43,8 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = $stmt->fetch();
 
             if ($user && password_verify($rawPass, $user['password_hash'])) {
-                // Berhasil login: reset percobaan gagal
+                // Berhasil login: reset percobaan gagal + log sukses
                 resetLoginAttempts($rateLimitKey);
+                securityLog('LOGIN_SUCCESS', "user={$username}");
 
                 // Anti-Session Fixation: regenerate session id baru secara kriptografis
                 session_regenerate_id(true);
@@ -53,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_id'] = (int)$user['id'];
                 $_SESSION['ua_hash'] = hash('sha256', $_SERVER['HTTP_USER_AGENT'] ?? 'unknown_client');
                 $_SESSION['last_activity'] = time();
+                $_SESSION['login_time']    = time();
 
                 // Redirect sesuai role
                 if (in_array($user['role'], ['satpam_siang', 'satpam_malam', 'sampah', 'super_admin'], true)) {
@@ -64,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 // Catat kegagalan login untuk mendeteksi serangan brute force
                 recordLoginFailure($rateLimitKey, 5, 300);
+                securityLog('LOGIN_FAIL', "user={$username}");
                 $error = 'Nomor rumah / akun atau kata sandi tidak cocok. Silakan periksa kembali.';
             }
         }

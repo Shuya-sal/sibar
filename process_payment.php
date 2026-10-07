@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $csrf = $_POST['csrf_token'] ?? '';
 if (!verifyCsrfToken($csrf)) {
+    securityLog('CSRF_FAIL', "page=process_payment");
     $_SESSION['flash_error'] = 'Sesi keamanan CSRF tidak valid. Silakan coba lagi.';
     header('Location: dashboard.php');
     exit;
@@ -19,8 +20,22 @@ if (!verifyCsrfToken($csrf)) {
 
 $payTarget = $_POST['pay_target'] ?? 'all';
 $paymentMethod = trim($_POST['payment_method'] ?? 'QRIS Instant');
-$db = getDB();
+// Validasi payment method (whitelist)
+$allowedMethods = ['QRIS Instant', 'Transfer Bank', 'Tunai (Cash)', 'M-Banking'];
+if (!in_array($paymentMethod, $allowedMethods, true)) {
+    $paymentMethod = 'QRIS Instant';
+}
 
+// Anti-double submit: cek idempotency
+$billKey = $user['house_id'] . '_' . $currentMonth . '_' . $currentYear . '_' . $payTarget;
+if (!checkPaymentIdempotency((int)$user['id'], $billKey)) {
+    $_SESSION['flash_error'] = 'Permintaan pembayaran duplikat terdeteksi. Transaksi sebelumnya masih diproses.';
+    header('Location: dashboard.php');
+    exit;
+}
+
+
+$db = getDB();
 $currentYear = 2026;
 $currentMonth = 10;
 

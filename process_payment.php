@@ -12,7 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $csrf = $_POST['csrf_token'] ?? '';
 if (!verifyCsrfToken($csrf)) {
-    die('Invalid CSRF token');
+    $_SESSION['flash_error'] = 'Sesi keamanan CSRF tidak valid. Silakan coba lagi.';
+    header('Location: dashboard.php');
+    exit;
 }
 
 $payTarget = $_POST['pay_target'] ?? 'all';

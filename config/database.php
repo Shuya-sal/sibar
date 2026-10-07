@@ -3,9 +3,7 @@
 // Konfigurasi Database SIBAR (XAMPP MySQL dengan fallback SQLite)
 // Roles: warga, satpam_siang, satpam_malam, sampah, super_admin
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/security.php';
 
 define('DB_HOST', 'localhost');
 define('DB_PORT', '3306');
@@ -84,27 +82,46 @@ function initMySQLSchema(PDO $pdo): void {
 
 function initSQLiteSchema(PDO $pdo): void {
     $queries = "
+    CREATE TABLE IF NOT EXISTS complexes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      code TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      address TEXT NOT NULL,
+      latitude REAL NOT NULL,
+      longitude REAL NOT NULL,
+      city TEXT DEFAULT 'Jakarta Selatan',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS houses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      complex_id INTEGER DEFAULT 1,
       block TEXT NOT NULL,
       number TEXT NOT NULL,
       address TEXT NOT NULL,
       lane TEXT DEFAULT 'Jalur Utama',
       status_huni TEXT DEFAULT 'tetap',
+      latitude REAL,
+      longitude REAL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (complex_id) REFERENCES complexes(id) ON DELETE SET NULL,
       UNIQUE(block, number)
     );
 
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       house_id INTEGER,
+      complex_id INTEGER DEFAULT 1,
       username TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
       full_name TEXT NOT NULL,
       phone TEXT NOT NULL,
       role TEXT DEFAULT 'warga',
+      latitude REAL,
+      longitude REAL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (house_id) REFERENCES houses(id) ON DELETE SET NULL
+      FOREIGN KEY (house_id) REFERENCES houses(id) ON DELETE SET NULL,
+      FOREIGN KEY (complex_id) REFERENCES complexes(id) ON DELETE SET NULL
     );
 
     CREATE TABLE IF NOT EXISTS fee_types (
@@ -142,15 +159,20 @@ function initSQLiteSchema(PDO $pdo): void {
       FOREIGN KEY (bill_id) REFERENCES bills(id) ON DELETE CASCADE
     );
 
+    -- Seed Master Komplek Perumahan
+    INSERT OR IGNORE INTO complexes (id, code, name, address, latitude, longitude, city) VALUES
+    (1, 'graha-asri', 'Komplek Graha Asri RT 04', 'Jl. Cempaka Raya, RT 04 / RW 08', -6.208763, 106.845599, 'Jakarta Selatan'),
+    (2, 'bukit-indah', 'Komplek Bukit Indah Asri RT 05', 'Jl. Bukit Indah Raya, RT 05 / RW 08', -6.215500, 106.852000, 'Jakarta Selatan');
+
     -- Seed Rumah (3 Blok / Jalur)
-    INSERT OR IGNORE INTO houses (id, block, number, address, lane, status_huni) VALUES
-    (1, 'A1', '05', 'Jl. Cempaka Raya No. 05, RT 04 / RW 08', 'Jalur Utama Timur',  'tetap'),
-    (2, 'A1', '06', 'Jl. Cempaka Raya No. 06, RT 04 / RW 08', 'Jalur Utama Timur',  'kontrak'),
-    (3, 'B3', '11', 'Jl. Cempaka Raya No. 11, RT 04 / RW 08', 'Jalur Utama Tengah', 'tetap'),
-    (4, 'B3', '12', 'Jl. Cempaka Raya No. 12, RT 04 / RW 08', 'Jalur Utama Tengah', 'tetap'),
-    (5, 'B3', '13', 'Jl. Cempaka Raya No. 13, RT 04 / RW 08', 'Jalur Utama Tengah', 'tetap'),
-    (6, 'C2', '08', 'Jl. Cempaka Raya No. 08, RT 04 / RW 08', 'Jalur Selatan',      'kontrak'),
-    (7, 'C2', '09', 'Jl. Cempaka Raya No. 09, RT 04 / RW 08', 'Jalur Selatan',      'tetap');
+    INSERT OR IGNORE INTO houses (id, complex_id, block, number, address, lane, status_huni, latitude, longitude) VALUES
+    (1, 1, 'A1', '05', 'Jl. Cempaka Raya No. 05, RT 04 / RW 08', 'Jalur Utama Timur',  'tetap', -6.208763, 106.845599),
+    (2, 1, 'A1', '06', 'Jl. Cempaka Raya No. 06, RT 04 / RW 08', 'Jalur Utama Timur',  'kontrak', -6.208801, 106.845620),
+    (3, 1, 'B3', '11', 'Jl. Cempaka Raya No. 11, RT 04 / RW 08', 'Jalur Utama Tengah', 'tetap', -6.208910, 106.845700),
+    (4, 1, 'B3', '12', 'Jl. Cempaka Raya No. 12, RT 04 / RW 08', 'Jalur Utama Tengah', 'tetap', -6.208945, 106.845735),
+    (5, 1, 'B3', '13', 'Jl. Cempaka Raya No. 13, RT 04 / RW 08', 'Jalur Utama Tengah', 'tetap', -6.208980, 106.845770),
+    (6, 1, 'C2', '08', 'Jl. Cempaka Raya No. 08, RT 04 / RW 08', 'Jalur Selatan',      'kontrak', -6.209100, 106.845850),
+    (7, 1, 'C2', '09', 'Jl. Cempaka Raya No. 09, RT 04 / RW 08', 'Jalur Selatan',      'tetap', -6.209150, 106.845890);
 
     -- Seed User (Password: password123)
     INSERT OR IGNORE INTO users (id, house_id, username, password_hash, full_name, phone, role) VALUES

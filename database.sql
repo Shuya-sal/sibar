@@ -5,15 +5,31 @@
 CREATE DATABASE IF NOT EXISTS `sibar_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `sibar_db`;
 
+-- 0. Tabel Master Komplek Perumahan
+CREATE TABLE IF NOT EXISTS `complexes` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `code` VARCHAR(50) NOT NULL UNIQUE,
+  `name` VARCHAR(100) NOT NULL,
+  `address` VARCHAR(255) NOT NULL,
+  `latitude` DECIMAL(10, 8) NOT NULL,
+  `longitude` DECIMAL(11, 8) NOT NULL,
+  `city` VARCHAR(100) DEFAULT 'Jakarta Selatan',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- 1. Tabel Rumah (Units per Blok & Jalur)
 CREATE TABLE IF NOT EXISTS `houses` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `complex_id` INT DEFAULT 1,
   `block` VARCHAR(10) NOT NULL,
   `number` VARCHAR(10) NOT NULL,
   `address` VARCHAR(255) NOT NULL,
   `lane` VARCHAR(100) DEFAULT 'Jalur Utama',
   `status_huni` ENUM('tetap', 'kontrak') DEFAULT 'tetap',
+  `latitude` DECIMAL(10, 8) NULL,
+  `longitude` DECIMAL(11, 8) NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`complex_id`) REFERENCES `complexes`(`id`) ON DELETE SET NULL,
   UNIQUE KEY `uk_house` (`block`, `number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -21,13 +37,17 @@ CREATE TABLE IF NOT EXISTS `houses` (
 CREATE TABLE IF NOT EXISTS `users` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `house_id` INT NULL,
+  `complex_id` INT DEFAULT 1,
   `username` VARCHAR(50) NOT NULL UNIQUE,
   `password_hash` VARCHAR(255) NOT NULL,
   `full_name` VARCHAR(100) NOT NULL,
   `phone` VARCHAR(20) NOT NULL,
   `role` ENUM('warga', 'satpam_siang', 'satpam_malam', 'sampah', 'super_admin') DEFAULT 'warga',
+  `latitude` DECIMAL(10, 8) NULL,
+  `longitude` DECIMAL(11, 8) NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`house_id`) REFERENCES `houses`(`id`) ON DELETE SET NULL
+  FOREIGN KEY (`house_id`) REFERENCES `houses`(`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`complex_id`) REFERENCES `complexes`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 3. Tabel Master Pos Iuran (Fee Types)

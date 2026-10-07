@@ -11,28 +11,60 @@ if (getCurrentUser()) {
 $error = '';
 $success = '';
 
+// Notifikasi keamanan sesi
+if (isset($_GET['sec'])) {
+    if ($_GET['sec'] === 'timeout') {
+        $error = 'Sesi Anda telah berakhir karena tidak ada aktivitas selama 30 menit. Silakan masuk kembali.';
+    } elseif ($_GET['sec'] === 'hijack_detected') {
+        $error = 'Peringatan Keamanan: Terdeteksi perubahan perangkat/jaringan. Sesi telah dihentikan untuk melindungi akun Anda.';
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrf = $_POST['csrf_token'] ?? '';
     if (!verifyCsrfToken($csrf)) {
-        $error = 'Sesi keamanan tidak valid. Silakan coba lagi.';
+        $error = 'Sesi keamanan CSRF tidak valid. Silakan muat ulang halaman dan coba lagi.';
     } else {
-        $username = trim($_POST['username'] ?? '');
-        $password = trim($_POST['password'] ?? '');
+        $username = strtolower(trim($_POST['username'] ?? ''));
+        $rawPass = (string)($_POST['password'] ?? '');
+        $clientIp = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        $rateLimitKey = $clientIp . '_' . $username;
 
-        if (empty($username) || empty($password)) {
-            $error = 'Username dan password wajib diisi.';
+        // Rate Limiter Anti-Brute Force
+        $rateCheck = checkRateLimit($rateLimitKey, 5, 300);
+        if (!$rateCheck['allowed']) {
+            $error = $rateCheck['message'];
+        } elseif (empty($username) || empty($rawPass)) {
+            $error = 'Username dan kata sandi wajib diisi.';
         } else {
             $db = getDB();
-            $stmt = $db->prepare("SELECT id, password_hash, full_name FROM users WHERE username = :username LIMIT 1");
-            $stmt->execute([':username' => strtolower($username)]);
+            $stmt = $db->prepare("SELECT id, password_hash, full_name, role FROM users WHERE username = :username LIMIT 1");
+            $stmt->execute([':username' => $username]);
             $user = $stmt->fetch();
 
-            if ($user && password_verify($password, $user['password_hash'])) {
-                $_SESSION['user_id'] = $user['id'];
-                header('Location: dashboard.php');
+            if ($user && password_verify($rawPass, $user['password_hash'])) {
+                // Berhasil login: reset percobaan gagal
+                resetLoginAttempts($rateLimitKey);
+
+                // Anti-Session Fixation: regenerate session id baru secara kriptografis
+                session_regenerate_id(true);
+
+                // Simpan identitas & sidik jari sesi
+                $_SESSION['user_id'] = (int)$user['id'];
+                $_SESSION['ua_hash'] = hash('sha256', $_SERVER['HTTP_USER_AGENT'] ?? 'unknown_client');
+                $_SESSION['last_activity'] = time();
+
+                // Redirect sesuai role
+                if (in_array($user['role'], ['satpam_siang', 'satpam_malam', 'sampah', 'super_admin'], true)) {
+                    header('Location: monitoring.php');
+                } else {
+                    header('Location: dashboard.php');
+                }
                 exit;
             } else {
-                $error = 'Nomor rumah / akun atau password salah.';
+                // Catat kegagalan login untuk mendeteksi serangan brute force
+                recordLoginFailure($rateLimitKey, 5, 300);
+                $error = 'Nomor rumah / akun atau kata sandi tidak cocok. Silakan periksa kembali.';
             }
         }
     }

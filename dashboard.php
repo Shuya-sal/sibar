@@ -118,6 +118,10 @@ unset($_SESSION['flash_success']);
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
         Riwayat Pembayaran
       </a>
+      <a href="calendar.php" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+        Kalender &amp; Rekap 12 Bulan
+      </a>
 
       <div class="nav-label">Lingkungan</div>
       <a href="#" class="nav-item" onclick="alert('Jadwal Keamanan: Siang (06:00-18:00), Malam (22:00-05:00)')">
@@ -456,6 +460,10 @@ unset($_SESSION['flash_success']);
   <a href="dashboard.php" class="tabbar-item active">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
     <span>Tagihan</span>
+  </a>
+  <a href="calendar.php" class="tabbar-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+    <span>Kalender</span>
   </a>
   <a href="#historySection" class="tabbar-item" onclick="document.getElementById('historySection').scrollIntoView({behavior:'smooth'})">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>

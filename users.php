@@ -53,6 +53,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $db->beginTransaction();
 
+            $complexId = (int)($_POST['complex_id'] ?? 1);
+            $lat = !empty($_POST['latitude']) ? (float)$_POST['latitude'] : null;
+            $lng = !empty($_POST['longitude']) ? (float)$_POST['longitude'] : null;
+
             if ($role === 'warga') {
                 $houseChoice = $_POST['house_choice'] ?? 'new';
                 if ($houseChoice === 'existing') {
@@ -82,15 +86,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $houseId = (int)$existingH['id'];
                     } else {
                         $stmtInsertHouse = $db->prepare("
-                            INSERT INTO houses (block, number, lane, address, status_huni)
-                            VALUES (:b, :n, :l, :a, :sh)
+                            INSERT INTO houses (complex_id, block, number, lane, address, status_huni, latitude, longitude)
+                            VALUES (:cid, :b, :n, :l, :a, :sh, :lat, :lng)
                         ");
                         $stmtInsertHouse->execute([
+                            ':cid' => $complexId,
                             ':b' => $block,
                             ':n' => $number,
                             ':l' => $lane ?: 'Jalur Utama',
                             ':a' => $address,
                             ':sh' => $statusHuni,
+                            ':lat' => $lat,
+                            ':lng' => $lng,
                         ]);
                         $houseId = (int)$db->lastInsertId();
 
@@ -114,16 +121,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Simpan akun pengguna
             $stmtInsertUser = $db->prepare("
-                INSERT INTO users (house_id, username, password_hash, full_name, phone, role)
-                VALUES (:hid, :u, :p, :fn, :ph, :r)
+                INSERT INTO users (house_id, complex_id, username, password_hash, full_name, phone, role, latitude, longitude)
+                VALUES (:hid, :cid, :u, :p, :fn, :ph, :r, :lat, :lng)
             ");
             $stmtInsertUser->execute([
                 ':hid' => $houseId,
+                ':cid' => $complexId,
                 ':u'   => $username,
                 ':p'   => $passwordHash,
                 ':fn'  => $fullName,
                 ':ph'  => $phone,
                 ':r'   => $role,
+                ':lat' => $lat,
+                ':lng' => $lng,
             ]);
 
             $db->commit();
@@ -197,14 +207,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Update user
+            $editComplexId = (int)($_POST['complex_id'] ?? 1);
+            $editLat = !empty($_POST['latitude']) ? (float)$_POST['latitude'] : null;
+            $editLng = !empty($_POST['longitude']) ? (float)$_POST['longitude'] : null;
+
             $params = [
-                ':fn' => $fullName,
-                ':ph' => $phone,
-                ':u'  => $username,
-                ':id' => $userId,
+                ':fn'  => $fullName,
+                ':ph'  => $phone,
+                ':u'   => $username,
+                ':cid' => $editComplexId,
+                ':id'  => $userId,
             ];
 
-            $sql = "UPDATE users SET full_name = :fn, phone = :ph, username = :u";
+            $sql = "UPDATE users SET full_name = :fn, phone = :ph, username = :u, complex_id = :cid";
+
+            if ($editLat !== null) {
+                $sql .= ", latitude = :lat";
+                $params[':lat'] = $editLat;
+            }
+            if ($editLng !== null) {
+                $sql .= ", longitude = :lng";
+                $params[':lng'] = $editLng;
+            }
 
             if (!empty($role) && $oldUser['role'] !== 'super_admin') {
                 $sql .= ", role = :r";
@@ -271,11 +295,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ==========================================
 // AMBIL SEMUA DATA UNTUK TAMPILAN
 // ==========================================
+$complexes = $db->query("SELECT id, code, name, address, latitude, longitude FROM complexes ORDER BY id ASC")->fetchAll();
+
 $stmtUsers = $db->query("
-    SELECT u.id, u.username, u.full_name, u.phone, u.role, u.house_id, u.created_at,
-           h.block, h.number, h.lane, h.address, h.status_huni
+    SELECT u.id, u.username, u.full_name, u.phone, u.role, u.house_id, u.complex_id, u.created_at,
+           u.latitude AS user_lat, u.longitude AS user_lng,
+           h.block, h.number, h.lane, h.address, h.status_huni,
+           h.complex_id AS house_complex_id,
+           COALESCE(cu.name, ch.name, 'Komplek Graha Asri RT 04') AS complex_name,
+           COALESCE(u.complex_id, h.complex_id, 1) AS final_complex_id,
+           COALESCE(u.latitude, h.latitude, cu.latitude, ch.latitude, -6.208763) AS final_lat,
+           COALESCE(u.longitude, h.longitude, cu.longitude, ch.longitude, 106.845599) AS final_lng
     FROM users u
     LEFT JOIN houses h ON h.id = u.house_id
+    LEFT JOIN complexes cu ON cu.id = u.complex_id
+    LEFT JOIN complexes ch ON ch.id = h.complex_id
     ORDER BY
       CASE u.role
         WHEN 'super_admin' THEN 1
@@ -588,6 +622,10 @@ foreach ($allUsers as $u) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         Peta Rumah (Blok & Jalur)
       </a>
+      <a href="calendar.php" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+        Kalender &amp; Rekap Tahunan
+      </a>
 
       <div class="nav-label">Administrasi</div>
       <a href="users.php" class="nav-item active">
@@ -703,10 +741,25 @@ foreach ($allUsers as $u) {
                       <div style="font-size:11.5px; color:var(--text-tertiary); margin-top:2px;">
                         Blok <?= htmlspecialchars($u['block']) ?> / No. <?= htmlspecialchars($u['number']) ?> · <?= htmlspecialchars($u['lane'] ?: 'Jalur Utama') ?> · <?= ucfirst(htmlspecialchars($u['status_huni'] ?: 'tetap')) ?>
                       </div>
+                      <div style="font-size:11px; color:var(--accent-blue); margin-top:3px; display:flex; align-items:center; gap:4px;">
+                        📍 <?= htmlspecialchars($u['complex_name'] ?? 'Komplek Graha Asri RT 04') ?>
+                      </div>
                     <?php elseif ($u['role'] === 'satpam_siang' || $u['role'] === 'satpam_malam'): ?>
                       <div style="font-size:11.5px; color:var(--text-tertiary); margin-top:2px;">Pos Jaga Lingkungan</div>
+                      <div style="font-size:11px; color:var(--accent-blue); margin-top:3px; display:flex; align-items:center; gap:4px;">
+                        📍 <?= htmlspecialchars($u['complex_name'] ?? 'Komplek Graha Asri RT 04') ?>
+                        <?php if (!empty($u['final_lat'])): ?>
+                          &nbsp;· <span style="font-family:ui-monospace,monospace; font-size:10px;"><?= number_format((float)$u['final_lat'], 6) ?>, <?= number_format((float)$u['final_lng'], 6) ?></span>
+                        <?php endif; ?>
+                      </div>
                     <?php elseif ($u['role'] === 'sampah'): ?>
                       <div style="font-size:11.5px; color:var(--text-tertiary); margin-top:2px;">TPS / Kebersihan RT</div>
+                      <div style="font-size:11px; color:var(--accent-blue); margin-top:3px; display:flex; align-items:center; gap:4px;">
+                        📍 <?= htmlspecialchars($u['complex_name'] ?? 'Komplek Graha Asri RT 04') ?>
+                        <?php if (!empty($u['final_lat'])): ?>
+                          &nbsp;· <span style="font-family:ui-monospace,monospace; font-size:10px;"><?= number_format((float)$u['final_lat'], 6) ?>, <?= number_format((float)$u['final_lng'], 6) ?></span>
+                        <?php endif; ?>
+                      </div>
                     <?php else: ?>
                       <div style="font-size:11.5px; color:var(--text-tertiary); margin-top:2px;">Kantor Pengurus RT</div>
                     <?php endif; ?>
@@ -795,6 +848,31 @@ foreach ($allUsers as $u) {
             <label for="add_password">Kata Sandi</label>
             <input type="password" id="add_password" name="password" class="form-control" value="password123" required>
             <div class="form-hint-text">Default: <code>password123</code></div>
+          </div>
+        </div>
+
+        <!-- Komplek & Koordinat -->
+        <div class="form-group" id="addComplexSection">
+          <label for="add_complex_id">Komplek Perumahan</label>
+          <select name="complex_id" id="add_complex_id" class="form-control">
+            <?php foreach ($complexes as $cx): ?>
+              <option value="<?= $cx['id'] ?>">
+                <?= htmlspecialchars($cx['name']) ?> (<?= $cx['latitude'] ?>, <?= $cx['longitude'] ?>)
+              </option>
+            <?php endforeach; ?>
+          </select>
+          <div class="form-hint-text">Komplek asal petugas / unit rumah ini bertugas</div>
+        </div>
+        <div class="form-grid-2" id="addCoordSection" style="display:none;">
+          <div class="form-group">
+            <label for="add_latitude">Koordinat Latitude</label>
+            <input type="number" step="0.000001" id="add_latitude" name="latitude" class="form-control" placeholder="-6.208763">
+            <div class="form-hint-text">GPS Latitude titik tugas (opsional)</div>
+          </div>
+          <div class="form-group">
+            <label for="add_longitude">Koordinat Longitude</label>
+            <input type="number" step="0.000001" id="add_longitude" name="longitude" class="form-control" placeholder="106.845599">
+            <div class="form-hint-text">GPS Longitude titik tugas (opsional)</div>
           </div>
         </div>
 
@@ -945,6 +1023,29 @@ foreach ($allUsers as $u) {
           </div>
         </div>
 
+        <!-- Komplek Perumahan & Koordinat GPS -->
+        <div class="form-group">
+          <label for="edit_complex_id">Komplek Perumahan</label>
+          <select name="complex_id" id="edit_complex_id" class="form-control">
+            <?php foreach ($complexes as $cx): ?>
+              <option value="<?= $cx['id'] ?>">
+                <?= htmlspecialchars($cx['name']) ?> (<?= $cx['latitude'] ?>, <?= $cx['longitude'] ?>)
+              </option>
+            <?php endforeach; ?>
+          </select>
+          <div class="form-hint-text">Komplek tempat petugas/warga ini bertugas dan tercatat</div>
+        </div>
+        <div class="form-grid-2" id="editCoordSection">
+          <div class="form-group">
+            <label for="edit_latitude">Koordinat Latitude (GPS)</label>
+            <input type="number" step="0.000001" id="edit_latitude" name="latitude" class="form-control" placeholder="-6.208763">
+          </div>
+          <div class="form-group">
+            <label for="edit_longitude">Koordinat Longitude (GPS)</label>
+            <input type="number" step="0.000001" id="edit_longitude" name="longitude" class="form-control" placeholder="106.845599">
+          </div>
+        </div>
+
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-secondary" onclick="closeEditModal()">Batal</button>
@@ -990,6 +1091,10 @@ foreach ($allUsers as $u) {
   <a href="monitoring.php" class="tabbar-item">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
     <span>Peta Rumah</span>
+  </a>
+  <a href="calendar.php" class="tabbar-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+    <span>Kalender</span>
   </a>
   <a href="users.php" class="tabbar-item active">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1065,12 +1170,16 @@ foreach ($allUsers as $u) {
     });
 
     const houseSec = document.getElementById('wargaHouseSection');
+    const coordSec = document.getElementById('addCoordSection');
     if (role === 'warga') {
       houseSec.style.display = 'flex';
+      if (coordSec) coordSec.style.display = 'none';
       document.getElementById('add_block').required = true;
       document.getElementById('add_number').required = true;
     } else {
       houseSec.style.display = 'none';
+      // Satpam & Sampah tampilkan kolom koordinat GPS spesifik titik tugas
+      if (coordSec) coordSec.style.display = 'grid';
       document.getElementById('add_block').required = false;
       document.getElementById('add_number').required = false;
     }
@@ -1114,6 +1223,17 @@ foreach ($allUsers as $u) {
       document.getElementById('edit_lane').value = userData.lane || '';
       document.getElementById('edit_status_huni').value = userData.status_huni || 'tetap';
     }
+
+    // Isi komplek & koordinat
+    const cxEl = document.getElementById('edit_complex_id');
+    if (cxEl) {
+      const cid = userData.final_complex_id || userData.complex_id || 1;
+      cxEl.value = cid;
+    }
+    const latEl = document.getElementById('edit_latitude');
+    const lngEl = document.getElementById('edit_longitude');
+    if (latEl && userData.final_lat) latEl.value = userData.final_lat;
+    if (lngEl && userData.final_lng) lngEl.value = userData.final_lng;
 
     document.getElementById('editModalOverlay').classList.add('active');
   }

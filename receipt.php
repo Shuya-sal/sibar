@@ -11,24 +11,46 @@ if (empty($receiptNo)) {
 }
 
 $db = getDB();
-$stmt = $db->prepare("
-    SELECT p.receipt_no, p.amount_paid, p.payment_method, p.paid_at,
-           b.period_month, b.period_year,
-           f.name AS fee_name, f.code,
-           h.block, h.number, h.address,
-           u.full_name
-    FROM payments p
-    JOIN bills b ON b.id = p.bill_id
-    JOIN fee_types f ON f.id = b.fee_type_id
-    JOIN houses h ON h.id = b.house_id
-    JOIN users u ON u.house_id = h.id
-    WHERE p.receipt_no = :receipt_no AND b.house_id = :house_id
-    LIMIT 1
-");
-$stmt->execute([
-    ':receipt_no' => $receiptNo,
-    ':house_id' => $user['house_id']
-]);
+$isWarga = ($user['role'] === 'warga');
+
+if ($isWarga) {
+    // Warga hanya boleh mengakses kwitansi rumahnya sendiri (Anti-IDOR)
+    $stmt = $db->prepare("
+        SELECT p.receipt_no, p.amount_paid, p.payment_method, p.paid_at,
+               b.period_month, b.period_year,
+               f.name AS fee_name, f.code,
+               h.block, h.number, h.address,
+               u.full_name
+        FROM payments p
+        JOIN bills b ON b.id = p.bill_id
+        JOIN fee_types f ON f.id = b.fee_type_id
+        JOIN houses h ON h.id = b.house_id
+        LEFT JOIN users u ON u.house_id = h.id AND u.role = 'warga'
+        WHERE p.receipt_no = :receipt_no AND b.house_id = :house_id
+        LIMIT 1
+    ");
+    $stmt->execute([
+        ':receipt_no' => $receiptNo,
+        ':house_id'   => (int)$user['house_id']
+    ]);
+} else {
+    // Petugas & Super Admin diizinkan meninjau kwitansi warga
+    $stmt = $db->prepare("
+        SELECT p.receipt_no, p.amount_paid, p.payment_method, p.paid_at,
+               b.period_month, b.period_year,
+               f.name AS fee_name, f.code,
+               h.block, h.number, h.address,
+               u.full_name
+        FROM payments p
+        JOIN bills b ON b.id = p.bill_id
+        JOIN fee_types f ON f.id = b.fee_type_id
+        JOIN houses h ON h.id = b.house_id
+        LEFT JOIN users u ON u.house_id = h.id AND u.role = 'warga'
+        WHERE p.receipt_no = :receipt_no
+        LIMIT 1
+    ");
+    $stmt->execute([':receipt_no' => $receiptNo]);
+}
 $data = $stmt->fetch();
 
 if (!$data) {

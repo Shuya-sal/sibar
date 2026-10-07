@@ -205,16 +205,35 @@
     .demo-banner button:hover { border-color: #d70015; color: #d70015; }
     @media (max-width: 860px) {
       body { padding-bottom: 84px !important; }
-      .content-body { padding: 12px 14px 84px !important; gap: 12px; }
+      html, body { max-width: 100%; overflow-x: hidden; }
+      .content-body { padding: 12px 14px 84px !important; gap: 12px; max-width: 100% !important; }
       .sidebar { display: none !important; }
       .lane-label { flex: 0 0 100%; margin-top: 2px; }
       .household-hero { flex-direction: column; align-items: stretch; gap: 10px; padding: 14px; }
       .hero-meta p { display: none; }
       .hero-summary-box { text-align: left; padding-left: 0; border-left: none; border-top: 1px solid var(--border-subtle); padding-top: 10px; display: flex; justify-content: space-between; align-items: center; }
       .top-header { padding: 8px 14px; }
-      .content-body { padding: 12px 14px 24px; gap: 12px; }
-      .house-chips { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-      .house-chip { min-height: 48px; padding: 10px 12px; justify-content: space-between; width: 100%; }
+
+      /* Search bar peta: lebih besar & nyaman dijempol */
+      .map-search-wrap input { padding: 13px 42px 13px 38px; font-size: 14px; }
+      .map-search-clear { width: 30px; height: 30px; }
+
+      /* Header kartu blok: judul & progress tersusun, badge tidak terpotong */
+      .block-panel { padding: 14px; }
+      .block-panel-header { flex-direction: column; align-items: stretch; gap: 10px; }
+      .block-summary { width: 100%; }
+      .block-progress-track { flex: 1; width: auto; }
+      .block-progress-text { flex-shrink: 0; }
+
+      /* Chip Rumah: 1 kolom penuh, tidak terpotong */
+      .house-chips { display: grid; grid-template-columns: 1fr; gap: 8px; }
+      .house-chip {
+        min-height: 52px; padding: 10px 12px; justify-content: space-between;
+        width: 100%; max-width: 100%; box-sizing: border-box;
+      }
+      .house-chip .chip-name { max-width: 150px; }
+      .house-chip .chip-status { font-size: 9.5px; padding: 2px 7px; flex-shrink: 0; margin-left: 8px; }
+
       .house-detail-overlay { align-items: flex-end !important; }
       .house-detail-panel { width: 100% !important; max-width: 100% !important; height: auto !important; max-height: 85vh !important; border-radius: 20px 20px 0 0 !important; border-left: none !important; border-top: 1px solid var(--border-subtle); box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.16) !important; animation: slideUpSheet 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important; }
       .ios-bottom-tabbar { display: flex !important; }

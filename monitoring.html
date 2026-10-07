@@ -105,6 +105,26 @@
     .legend-dot.lunas { background: #d3f2dc; border-color: rgba(52,199,89,0.45); }
     .legend-dot.belum { background: #ffe9cc; border-color: rgba(255,149,0,0.45); }
     .legend-dot.kosong { background: #e5e5ea; border-color: var(--border-subtle); }
+    /* Search Bar Peta Rumah */
+    .map-search-wrap { position: relative; display: flex; align-items: center; margin-bottom: 16px; }
+    .map-search-wrap svg { position: absolute; left: 13px; width: 15px; height: 15px; color: var(--text-tertiary); pointer-events: none; }
+    .map-search-wrap input {
+      width: 100%; padding: 11px 40px 11px 36px; font-size: 13.5px; font-family: inherit;
+      border-radius: var(--radius-md); border: 1px solid var(--border-subtle); background: var(--bg-subtle);
+      outline: none; transition: all 0.15s ease;
+    }
+    .map-search-wrap input:focus { border-color: var(--accent-blue); background: #fff; box-shadow: 0 0 0 3px var(--accent-blue-subtle); }
+    .map-search-clear {
+      position: absolute; right: 8px; width: 26px; height: 26px; border: none; border-radius: 50%;
+      background: #d1d1d6; color: #fff; font-size: 15px; line-height: 1; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: background 0.12s ease;
+    }
+    .map-search-clear:hover { background: #aeaeb2; }
+    .map-search-empty {
+      padding: 36px 24px; text-align: center; color: var(--text-tertiary); font-size: 13.5px;
+      background: var(--bg-subtle); border: 1px dashed var(--border-subtle); border-radius: var(--radius-md); margin-bottom: 16px;
+    }
+    .map-search-empty p { margin: 4px 0; }
     .map-blocks { display: flex; flex-direction: column; gap: 20px; }
     .block-panel { background: var(--bg-subtle); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px 18px 18px; }
     .block-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
@@ -127,6 +147,9 @@
       font-family: inherit;
     }
     .house-chip:hover { border-color: var(--accent-blue); box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+    .house-chip .chip-main { display: flex; flex-direction: column; line-height: 1.25; }
+    .house-chip .chip-no { font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
+    .house-chip .chip-name { font-size: 10.5px; font-weight: 500; color: var(--text-tertiary); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .house-chip .chip-status { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; padding: 1px 6px; border-radius: var(--radius-pill); }
     .house-chip.all-paid .chip-status { background: var(--badge-paid-bg); color: var(--badge-paid-text); border: 1px solid var(--badge-paid-border); }
     .house-chip.has-unpaid .chip-status { background: var(--badge-unpaid-bg); color: var(--badge-unpaid-text); border: 1px solid var(--badge-unpaid-border); }
@@ -278,6 +301,18 @@
             <span class="legend-item"><span class="legend-dot kosong"></span> Belum Ada KK</span>
           </div>
         </div>
+        <!-- PENCARIAN PETA RUMAH -->
+        <div class="map-search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="mapSearchInput" placeholder="Cari nama KK, nomor rumah, blok, atau jalur..." oninput="filterMapHouses()" autocomplete="off">
+          <button type="button" class="map-search-clear" id="mapSearchClear" onclick="clearMapSearch()" style="display:none;">&times;</button>
+        </div>
+        <div class="map-search-empty" id="mapSearchEmpty" style="display:none;">
+          <div style="font-size:26px;">🔍</div>
+          <p><strong>Tidak ada rumah yang cocok.</strong></p>
+          <p style="font-size:12px;">Coba kata kunci lain — misalnya nama kepala keluarga, nomor rumah (mis. <em>12</em>), blok (mis. <em>B3</em>), atau jalur.</p>
+        </div>
+
         <div class="map-blocks" id="mapBlocks"></div>
       </section>
     </div>
@@ -466,13 +501,15 @@
         lanes[laneName].forEach(h => {
           const kk = kkByHouse[h.id];
           if (!kk) {
-            panelHTML += `<span class="house-chip no-user" title="Belum ada akun KK"><span>🏠</span><span>No. ${h.number}</span><span class="chip-status">Kosong</span></span>`;
+            panelHTML += `<span class="house-chip no-user" title="Belum ada akun KK" data-search="${(blockName + ' ' + laneName + ' no ' + h.number + ' kosong').toLowerCase()}"><span>🏠</span><span>No. ${h.number}</span><span class="chip-status">Kosong</span></span>`;
           } else {
             const bs = octBills.filter(b => b.house_id === h.id);
             const unpaid = bs.filter(b => b.status === 'unpaid').length;
             const isAllPaid = bs.length > 0 && unpaid === 0;
-            panelHTML += `<button class="house-chip ${isAllPaid ? 'all-paid' : 'has-unpaid'}" data-house="${h.id}">
-              <span>${isAllPaid ? '🏡' : '🏚️'}</span><span>No. ${h.number}</span>
+            const searchStr = (blockName + ' ' + laneName + ' no ' + h.number + ' ' + (kk.name || kk.full_name || '') + ' ' + kk.username).toLowerCase();
+            panelHTML += `<button class="house-chip ${isAllPaid ? 'all-paid' : 'has-unpaid'}" data-house="${h.id}" data-search="${searchStr}">
+              <span>${isAllPaid ? '🏡' : '🏚️'}</span>
+              <span class="chip-main"><span class="chip-no">No. ${h.number}</span><span class="chip-name">${kk.name || kk.full_name || ''}</span></span>
               <span class="chip-status">${isAllPaid ? 'Lunas' : unpaid + ' Belum'}</span>
             </button>`;
           }
@@ -489,6 +526,38 @@
     container.querySelectorAll('.house-chip[data-house]').forEach(btn => {
       btn.addEventListener('click', () => openDrawer(parseInt(btn.dataset.house, 10)));
     });
+  }
+
+  // ===== PENCARIAN PETA RUMAH =====
+  function filterMapHouses() {
+    const q = (document.getElementById('mapSearchInput').value || '').toLowerCase().trim();
+    const clearBtn = document.getElementById('mapSearchClear');
+    const emptyBox = document.getElementById('mapSearchEmpty');
+    clearBtn.style.display = q ? 'flex' : 'none';
+
+    let totalVisible = 0;
+    document.querySelectorAll('#mapBlocks .block-panel').forEach(panel => {
+      let panelVisible = 0;
+      panel.querySelectorAll('.lane-row').forEach(laneRow => {
+        let laneVisible = 0;
+        laneRow.querySelectorAll('.house-chip').forEach(chip => {
+          const text = chip.dataset.search || chip.innerText.toLowerCase();
+          const match = !q || text.includes(q);
+          chip.style.display = match ? '' : 'none';
+          if (match) { laneVisible++; totalVisible++; }
+        });
+        laneRow.style.display = laneVisible > 0 ? '' : 'none';
+        panelVisible += laneVisible;
+      });
+      panel.style.display = panelVisible > 0 ? '' : 'none';
+    });
+    emptyBox.style.display = (q && totalVisible === 0) ? 'block' : 'none';
+  }
+
+  function clearMapSearch() {
+    document.getElementById('mapSearchInput').value = '';
+    filterMapHouses();
+    document.getElementById('mapSearchInput').focus();
   }
 
   function openDrawer(houseId) {

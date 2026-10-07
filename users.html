@@ -321,13 +321,29 @@
       margin-top: 2px;
     }
 
+    /* HEADER RINGKAS */
+    .page-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .page-header-title h2 {
+      font-size: 24px; font-weight: 700; letter-spacing: -0.02em;
+      color: var(--text-primary); margin: 0;
+    }
+    .page-header-title p { font-size: 13px; color: var(--text-tertiary); margin: 4px 0 0; }
+
     .admin-toolbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 14px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
     .filter-tabs {
@@ -736,48 +752,35 @@
         <span class="current">Kelola Akun &amp; Pengaturan</span>
       </div>
       <div class="header-actions">
-        <button type="button" class="btn-primary" onclick="openAddModal()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Tambah Akun Baru
-        </button>
       </div>
     </header>
 
     <div class="content-body">
 
-      <!-- WELCOME HERO -->
-      <section class="household-hero">
-        <div class="hero-meta">
-          <h2>Pusat Pengaturan Pengguna &amp; Rumah</h2>
-          <p>Kelola seluruh akun <strong>Kepala Keluarga (Warga)</strong>, <strong>Satpam Jaga Siang &amp; Malam</strong>, serta <strong>Petugas Sampah</strong>. Tambah akun baru, perbarui profil/unit rumah, atau hapus akses.</p>
-          <div class="hero-badges" id="heroBadges">
-            <!-- Badges rendered by JS -->
-          </div>
+      <!-- HEADER RINGKAS -->
+      <div class="page-header-row">
+        <div class="page-header-title">
+          <h2>Kelola Akun</h2>
+          <p>Kepala Keluarga, Satpam Jaga Siang &amp; Malam, dan Petugas Sampah.</p>
         </div>
-        <div class="hero-summary-box">
-          <div class="sub">Total Entitas</div>
-          <div class="amount" id="totalCountDisplay">11 <span style="font-size:14px; color:var(--text-tertiary); font-weight:500;">Akun</span></div>
-          <span class="status-badge paid">● Data Tersinkronisasi</span>
-        </div>
-      </section>
+        <button type="button" class="btn-primary" onclick="openAddModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Tambah Akun
+        </button>
+      </div>
 
       <!-- TABEL DAFTAR PENGGUNA -->
       <section class="section-container">
-        <div class="section-header">
-          <div class="section-title-wrap">
-            <h3>Daftar Pengguna Sistem SIBAR</h3>
-            <p>Gunakan filter tab dan bilah pencarian untuk menyaring akun yang ingin diatur.</p>
+        <div class="admin-toolbar">
+          <div class="filter-tabs" id="filterTabsContainer">
+            <!-- Filter tabs rendered by JS -->
           </div>
           <div class="search-input-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             <input type="text" id="searchInput" placeholder="Cari nama, akun, blok..." onkeyup="filterUserTable()">
           </div>
         </div>
-
-        <div class="admin-toolbar">
-          <div class="filter-tabs" id="filterTabsContainer">
-            <!-- Filter tabs rendered by JS -->
-          </div>
+        <div style="padding: 10px 18px 0;">
           <span style="font-size:12px; color:var(--text-tertiary);" id="rowCountLabel">Menampilkan akun</span>
         </div>
 
@@ -1089,17 +1092,6 @@
       else if (u.role === 'sampah') counts.sampah++;
       else if (u.role === 'super_admin') counts.admin++;
     });
-
-    document.getElementById('totalCountDisplay').innerHTML = `${counts.all} <span style="font-size:14px; color:var(--text-tertiary); font-weight:500;">Akun</span>`;
-
-    // Render hero badges
-    document.getElementById('heroBadges').innerHTML = `
-      <span class="hero-tag">Akses: Super Admin RT 04</span>
-      <span class="hero-tag">Total Akun: ${counts.all} Pengguna</span>
-      <span class="hero-tag">${counts.warga} Kepala Keluarga</span>
-      <span class="hero-tag">${counts.satpam} Satpam</span>
-      <span class="hero-tag">${counts.sampah} Petugas Sampah</span>
-    `;
 
     // Render tabs
     document.getElementById('filterTabsContainer').innerHTML = `

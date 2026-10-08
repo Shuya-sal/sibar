@@ -432,8 +432,31 @@
 
 <script src="sibar-demo-data.js"></script>
 <script>
-  const session = SIBAR.currentUser();
-  if (!session || session.role !== 'warga') { spaRedirect('app.html#/login'); }
+  // === SHARED HELPERS (harus di awal — dipakai guard & render) ===
+  function escHtml(s) {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function spaGo(route) {
+    if (window.parent && window.parent.SIBAR_SPA) {
+      window.parent.SIBAR_SPA.navigate(route);
+    } else {
+      window.location.href = 'app.html#/' + route;
+    }
+  }
+
+  function spaRedirect(path) {
+    if (window.parent && window.parent !== window && window.parent.SIBAR_SPA) {
+      var route = path.split('#/')[1];
+      window.parent.SIBAR_SPA.navigate(route);
+    } else {
+      window.location.href = path;
+    }
+  }
+  function getSession() { return SIBAR.currentUser(); }
+  if (!getSession() || getSession().role !== 'warga') { /* keep-alive: boleh null sementara, dicek lagi saat render */ }
 
   const YEAR = 2026, MONTH = 10;
   let payTarget = 'all';
@@ -456,8 +479,11 @@
   }
 
   function render() {
+    const session = SIBAR.currentUser();
+    if (!session) { spaRedirect('app.html#/login'); return; }
     const db = SIBAR.load();
     const user = db.users.find(u => u.username === session.username);
+    if (!user) return;
     const house = db.houses.find(h => h.id === user.house_id);
 
     document.getElementById('avatarEl').textContent = user.name.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase();
@@ -565,6 +591,7 @@
 
   function openModal(target, title, amount) {
     payTarget = target;
+    const session = SIBAR.currentUser();
     const db = SIBAR.load();
     const user = db.users.find(u => u.username === session.username);
 
@@ -594,6 +621,7 @@
 
   function confirmPay() {
     const method = document.querySelector('.pay-method-item.selected').dataset.m;
+    const session = SIBAR.currentUser();
     const db = SIBAR.load();
     const user = db.users.find(u => u.username === session.username);
     const targets = payTarget === 'all'
@@ -606,6 +634,9 @@
   }
 
   render();
+
+  // Re-render saat session berubah (login/logout/switch user) — event dari SPA shell
+  window.addEventListener('sibar:session', () => { try { render(); } catch (e) {} });
 </script>
 
 <script>

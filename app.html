@@ -288,6 +288,12 @@ function routeTo(route) {
         frame.addEventListener('load', hideLoading, { once: true });
       }
       frame.classList.add('active');
+      // Beri tahu halaman dalam frame bahwa session mungkin berubah (login/logout/user switch)
+      try {
+        setTimeout(() => {
+          frame.contentWindow?.dispatchEvent(new CustomEvent('sibar:session'));
+        }, 60);
+      } catch (e) {}
     } else {
       frame.classList.remove('active');
     }

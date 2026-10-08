@@ -700,6 +700,29 @@
 
 <script src="sibar-demo-data.js"></script>
 <script>
+  // === SHARED HELPERS (harus di awal — dipakai guard & render) ===
+  function escHtml(s) {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function spaGo(route) {
+    if (window.parent && window.parent.SIBAR_SPA) {
+      window.parent.SIBAR_SPA.navigate(route);
+    } else {
+      window.location.href = 'app.html#/' + route;
+    }
+  }
+
+  function spaRedirect(path) {
+    if (window.parent && window.parent !== window && window.parent.SIBAR_SPA) {
+      var route = path.split('#/')[1];
+      window.parent.SIBAR_SPA.navigate(route);
+    } else {
+      window.location.href = path;
+    }
+  }
   let currentYear = 2026;
   let currentMonthFilter = 'all';
   let selectedHouseId = 4; // Default B3-12

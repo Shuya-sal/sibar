@@ -390,23 +390,24 @@
   if (getSession() && getSession().role === 'warga') { spaRedirect('app.html#/monitoring'); }
 
   const YEAR = 2026, MONTH = 10;
-  const feeCodes = SIBAR.allowedFeeCodes(session.role); // null = semua
+  const feeCodes = SIBAR.allowedFeeCodes(getSession()?.role); // null = semua
   const scopeLabel = {
     satpam_siang: 'Iuran Jaga Siang',
     satpam_malam: 'Iuran Jaga Malam',
     sampah: 'Iuran Sampah & Kebersihan',
     super_admin: 'Semua Pos Iuran'
-  }[session.role] || 'Monitoring';
+  }[(getSession() || {}).role] || 'Monitoring';
 
   document.getElementById('bcScope').textContent = 'Peta Rumah — ' + scopeLabel;
   document.getElementById('scopeTag').textContent = 'Lingkup: ' + scopeLabel;
 
   // Sidebar user
-  document.getElementById('avatarEl').textContent = session.name.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase();
-  document.getElementById('userNameEl').textContent = session.name;
+  const _sess = getSession() || {};
+  document.getElementById('avatarEl').textContent = (_sess.name || 'Pengguna').split(' ').slice(-2).map(w => w[0]).join('').toUpperCase();
+  document.getElementById('userNameEl').textContent = _sess.name || 'Pengguna';
   const rb = document.getElementById('roleBadgeEl');
-  rb.textContent = SIBAR.roleLabel(session.role);
-  rb.classList.add(session.role);
+  rb.textContent = SIBAR.roleLabel(_sess.role);
+  rb.classList.add(_sess.role || 'warga');
 
   // Sidebar scope menu
   const scopeMenu = document.getElementById('scopeMenu');
@@ -420,7 +421,7 @@
     `<a href="#" class="nav-item" onclick="event.preventDefault()">${p.icon} ${p.label}</a>`
   ).join('');
 
-  if (session.role === 'super_admin') {
+  if ((getSession() || {}).role === 'super_admin') {
     scopeMenuHtml += `
       <div class="nav-label" style="margin-top:6px;">Administrasi</div>
       <a href="javascript:void(0)" onclick="spaGo('users')" class="nav-item">⚙️ Kelola Akun (KK, Satpam, Sampah)</a>
@@ -453,7 +454,7 @@
         <span>Kalender</span>
       </a>
     `;
-    if (session.role === 'super_admin') {
+    if ((getSession() || {}).role === 'super_admin') {
       tabHtml += `
         <a href="javascript:void(0)" onclick="spaGo('users')" class="tabbar-item">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -495,7 +496,7 @@
     });
 
     document.getElementById('heroDesc').innerHTML =
-      `Anda masuk sebagai <strong>${SIBAR.roleLabel(session.role)}</strong>. Klik nomor rumah untuk melihat identitas kepala keluarga dan rincian status pembayaran ${scopeLabel.toLowerCase()} bulan Oktober 2026.`;
+      `Anda masuk sebagai <strong>${SIBAR.roleLabel((getSession() || {}).role)}</strong>. Klik nomor rumah untuk melihat identitas kepala keluarga dan rincian status pembayaran ${scopeLabel.toLowerCase()} bulan Oktober 2026.`;
     document.getElementById('totalTag').textContent = 'Total Rumah: ' + db.houses.length;
     document.getElementById('recapAmount').innerHTML = `${lunas} <span style="font-size:14px; color:var(--text-tertiary); font-weight:500;">Lunas</span> · ${belum} <span style="font-size:14px; color:var(--text-tertiary); font-weight:500;">Belum</span>`;
     const rp = document.getElementById('recapPill');

@@ -742,14 +742,31 @@
   function sendReminder(channel, phone, name, unit, unpaidTotal, unpaidCount) {
     const year = currentYear;
     const bulan = SibarData.MONTHS[new Date().getMonth() + 1] || 'bulan ini';
+    // Nama komplek dari unit yang ditagih (fallback ke komplek terpilih di filter)
+    const dbCx = SibarData.load();
+    let cxName = '';
+    const houseMatch = dbCx.houses.find(h => ('Blok ' + h.block + '/' + h.number) === unit);
+    if (houseMatch) {
+      const cx = (dbCx.complexes || []).find(c => c.id === (houseMatch.complex_id || 1));
+      cxName = cx ? cx.name : '';
+    }
+    if (!cxName) {
+      const cxSel = document.getElementById('complexSelect');
+      if (cxSel && cxSel.selectedIndex >= 0) {
+        const cx = (dbCx.complexes || []).find(c => String(c.id) === String(cxSel.value));
+        cxName = cx ? cx.name : 'Komplek';
+      } else {
+        cxName = 'Komplek';
+      }
+    }
     const msg =
       'Assalamualaikum Bpk/Ibu ' + name + ',\n\n' +
-      'Kami dari pengurus RT 04 mengingatkan bahwa iuran ' + bulan + ' ' + year + ' untuk unit ' + unit + ' belum terselesaikan.\n\n' +
+      'Kami dari pengurus ' + cxName + ' mengingatkan bahwa iuran ' + bulan + ' ' + year + ' untuk unit ' + unit + ' belum terselesaikan.\n\n' +
       'Ketunggakan: Rp ' + unpaidTotal.toLocaleString('id-ID') + '\n' +
       (unpaidCount > 0 ? 'Pos belum lunas bulan ini: ' + unpaidCount + ' (Jaga Malam/Jaga Siang/Sampah)\n' : '') +
       '\nMohon lakukan pembayaran melalui QRIS, transfer bank, atau langsung kepada petugas.\n\n' +
       'Terima kasih atas kerja samanya.\n' +
-      '— Pengurus SIBAR RT 04';
+      '— Pengurus ' + cxName;
 
     const phoneIntl = phone.replace(/^0/, '62').replace(/[^0-9]/g, '');
     if (channel === 'wa') {

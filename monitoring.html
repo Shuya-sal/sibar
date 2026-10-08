@@ -482,13 +482,18 @@
 
   function render() {
     const db = SIBAR.load();
+    const sess = getSession() || {};
+    // Scope komplek: satpam/sampah hanya melihat rumah di kompleknya; super_admin melihat semua
+    const isSuperAdmin = sess.role === 'super_admin';
+    const myComplexId = sess.complex_id || 1;
+    const allHouses = isSuperAdmin ? db.houses : db.houses.filter(h => (h.complex_id || 1) === myComplexId);
     const kkByHouse = {};
     db.users.filter(u => u.role === 'warga' && u.house_id).forEach(u => { kkByHouse[u.house_id] = u; });
 
     const octBills = getFilteredBills(db);
 
     let lunas = 0, belum = 0;
-    db.houses.forEach(h => {
+    allHouses.forEach(h => {
       if (!kkByHouse[h.id]) return;
       const bs = octBills.filter(b => b.house_id === h.id);
       if (bs.length === 0) return;
@@ -496,16 +501,19 @@
     });
 
     document.getElementById('heroDesc').innerHTML =
-      `Anda masuk sebagai <strong>${SIBAR.roleLabel((getSession() || {}).role)}</strong>. Klik nomor rumah untuk melihat identitas kepala keluarga dan rincian status pembayaran ${scopeLabel.toLowerCase()} bulan Oktober 2026.`;
-    document.getElementById('totalTag').textContent = 'Total Rumah: ' + db.houses.length;
+      `Anda masuk sebagai <strong>${SIBAR.roleLabel(sess.role)}</strong>. Klik nomor rumah untuk melihat identitas kepala keluarga dan rincian status pembayaran ${scopeLabel.toLowerCase()} bulan Oktober 2026.`;
+    const cxName = (db.complexes || []).find(c => c.id === myComplexId)?.name;
+    document.getElementById('totalTag').textContent = isSuperAdmin
+      ? 'Total Rumah: ' + allHouses.length + ' (semua komplek)'
+      : 'Total Rumah: ' + allHouses.length + (cxName ? ' — ' + cxName : '');
     document.getElementById('recapAmount').innerHTML = `${lunas} <span style="font-size:14px; color:var(--text-tertiary); font-weight:500;">Lunas</span> · ${belum} <span style="font-size:14px; color:var(--text-tertiary); font-weight:500;">Belum</span>`;
     const rp = document.getElementById('recapPill');
     rp.textContent = belum > 0 ? belum + ' rumah perlu ditagih' : 'Semua rumah lunas';
     rp.className = 'status-badge ' + (belum > 0 ? 'unpaid' : 'paid');
 
-    // Group per blok -> jalur
+    // Group per blok -> jalur (hanya rumah dalam scope komplek)
     const blocks = {};
-    db.houses.forEach(h => {
+    allHouses.forEach(h => {
       if (!blocks[h.block]) blocks[h.block] = {};
       if (!blocks[h.block][h.lane]) blocks[h.block][h.lane] = [];
       blocks[h.block][h.lane].push(h);

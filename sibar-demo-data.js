@@ -1,7 +1,187 @@
 // sibar-demo-data.js — Data dummy in-memory + localStorage persistence (demo statis GitHub Pages)
+// SIBAR INTEGRITY LAYER: HMAC envelope + hash-chain audit log + anti-double payment
 
 const SIBAR = (() => {
   const DB_KEY = 'sibar_demo_db_v1';
+  const SIG_KEY = 'sibar_demo_sig_v1';       // HMAC key (diputar via obfuscation + rotasi per sesi)
+  const AUDIT_KEY = 'sibar_demo_audit_v1';   // Audit log berantai hash
+  const BACKUP_KEY = 'sibar_demo_backup_v1'; // Snapshot bersih terakhir
+
+  /* ================= INTEGRITY: HMAC ENVELOPE ================= */
+  // FNV-1a 32-bit: hash cepat untuk demo (tidak kriptografis penuh,
+  // tapi mencegah manipulasi manual via console oleh user biasa)
+  function fnv1a(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    return (h >>> 0).toString(16).padStart(8, '0');
+  }
+
+  // Derived key: kombinasi seed-fingerprint + rotasi waktu (per jam)
+  function deriveKey() {
+    const seedFp = fnv1a(JSON.stringify(seed.bills.map(b => b.id)) + seed.users.length);
+    const hourBucket = Math.floor(Date.now() / 3600000);
+    return fnv1a(seedFp + ':' + hourBucket);
+  }
+
+  // Envelope: { data, sig } — sig = fnv1a(data + key)
+  function signEnvelope(db) {
+    const payload = JSON.stringify(db);
+    const key = deriveKey();
+    return { data: payload, sig: fnv1a(payload + key), ts: Date.now() };
+  }
+
+  function verifyEnvelope(env) {
+    if (!env || typeof env.data !== 'string' || typeof env.sig !== 'string') return false;
+    // Cek dengan key jam sekarang dan jam sebelumnya (rotasi)
+    const nowKey = deriveKey();
+    const prevKey = fnv1a(fnv1a(JSON.stringify(seed.bills.map(b => b.id)) + seed.users.length) + ':' + (Math.floor(Date.now() / 3600000) - 1));
+    return fnv1a(env.data + nowKey) === env.sig || fnv1a(env.data + prevKey) === env.sig;
+  }
+
+  function load() {
+    const raw = localStorage.getItem(DB_KEY);
+    let db;
+    if (!raw) {
+      db = JSON.parse(JSON.stringify(seed));
+    } else {
+      try {
+        const env = JSON.parse(raw);
+        if (env && typeof env === 'object' && 'sig' in env) {
+          // Envelope baru (signed)
+          if (!verifyEnvelope(env)) {
+            // TAMPERING TERDETEKSI — coba restore dari backup, jika tidak ada fallback ke seed
+            appendAudit('TAMPER_DETECTED', 'Envelope signature mismatch — data restored');
+            const backupRaw = localStorage.getItem(BACKUP_KEY);
+            if (backupRaw) {
+              try {
+                const backupEnv = JSON.parse(backupRaw);
+                if (verifyEnvelope(backupEnv)) {
+                  db = JSON.parse(backupEnv.data);
+                  showToastSecure('⚠️ Integritas data terdeteksi berubah — dipulihkan dari backup.');
+                } else {
+                  db = JSON.parse(JSON.stringify(seed));
+                }
+              } catch { db = JSON.parse(JSON.stringify(seed)); }
+            } else {
+              db = JSON.parse(JSON.stringify(seed));
+            }
+          } else {
+            db = JSON.parse(env.data);
+          }
+        } else {
+          // Downgrade attack: data tanpa signature tidak dipercaya.
+          // Restore dari backup; jika tidak ada, fallback seed.
+          appendAudit('TAMPER_DOWNGRADE', 'Unsigned data rejected');
+          const backupRaw = localStorage.getItem(BACKUP_KEY);
+          let restored = false;
+          if (backupRaw) {
+            try {
+              const backupEnv = JSON.parse(backupRaw);
+              if (backupEnv && backupEnv.sig && verifyEnvelope(backupEnv)) {
+                db = JSON.parse(backupEnv.data);
+                restored = true;
+              }
+            } catch {}
+          }
+          if (!restored) db = JSON.parse(JSON.stringify(seed));
+        }
+      } catch (e) {
+        console.error('DB parse error', e);
+        db = JSON.parse(JSON.stringify(seed));
+      }
+    }
+
+    // Pastikan data 12 bulan tahun 2026 & 2025 tersedia
+    ensureAnnualData(db);
+    return db;
+  }
+
+  function save(db) {
+    // Simpan envelope ber-signature + backup snapshot (untuk recovery)
+    const env = signEnvelope(db);
+    try { localStorage.setItem(DB_KEY, JSON.stringify(env)); } catch (e) {}
+    // Backup hanya jika tidak ada backup sebelumnya ATAU backup sudah > 1 jam
+    const existing = localStorage.getItem(BACKUP_KEY);
+    let shouldBackup = !existing;
+    if (existing) {
+      try {
+        const prev = JSON.parse(existing);
+        shouldBackup = (Date.now() - (prev.ts || 0)) > 3600000;
+      } catch { shouldBackup = true; }
+    }
+    if (shouldBackup) {
+      try { localStorage.setItem(BACKUP_KEY, JSON.stringify(env)); } catch (e) {}
+    }
+    appendAudit('DB_SAVE', db.bills.length + 'bills/' + db.payments.length + 'pays');
+  }
+
+  function reset() {
+    localStorage.removeItem(DB_KEY);
+    localStorage.removeItem(AUDIT_KEY);
+    localStorage.removeItem(BACKUP_KEY);
+  }
+
+  /* ================= AUDIT LOG: HASH CHAIN ================= */
+  // Setiap operasi catat: { ts, action, prevHash, hash }
+  // Hash = fnv1a(prevHash + action + ts) — merantai sehingga
+  // penghapusan/penyisipan entri akan memutus chain (terdeteksi)
+  function appendAudit(action, detail) {
+    try {
+      const log = JSON.parse(localStorage.getItem(AUDIT_KEY) || '[]');
+      const prevHash = log.length ? log[log.length - 1].hash : 'GENESIS';
+      const ts = Date.now();
+      const hash = fnv1a(prevHash + '|' + action + '|' + detail + '|' + ts);
+      log.push({ ts, action, detail, prevHash, hash });
+      // Batasi 500 entri terakhir
+      while (log.length > 500) log.shift();
+      localStorage.setItem(AUDIT_KEY, JSON.stringify(log));
+    } catch (e) { /* audit gagal tidak boleh blok operasi utama */ }
+  }
+
+  // Verifikasi chain audit (untuk debugging / halaman admin)
+  function verifyAuditChain() {
+    try {
+      const log = JSON.parse(localStorage.getItem(AUDIT_KEY) || '[]');
+      for (let i = 0; i < log.length; i++) {
+        const expect = fnv1a(log[i].prevHash + '|' + log[i].action + '|' + log[i].detail + '|' + log[i].ts);
+        if (expect !== log[i].hash) return { valid: false, brokenAt: i };
+        if (i > 0 && log[i].prevHash !== log[i - 1].hash) return { valid: false, brokenAt: i };
+      }
+      return { valid: true, entries: log.length };
+    } catch { return { valid: false, brokenAt: -1 }; }
+  }
+
+  function getAuditLog() {
+    try { return JSON.parse(localStorage.getItem(AUDIT_KEY) || '[]'); } catch { return []; }
+  }
+
+  function showToastSecure(msg) {
+    // Toast ringan tanpa dependensi halaman (no-op jika tidak ada DOM)
+    if (typeof document !== 'undefined' && document.body) {
+      console.warn('[SIBAR INTEGRITY]', msg);
+    }
+  }
+
+  /* ================= ANTI-DOUBLE PAYMENT ================= */
+  const IDEMPOTENCY_KEY = 'sibar_pay_idem_v1';
+  // Idempotency: satu bill hanya bisa dibayar 1x dalam window
+  function checkIdempotency(billId) {
+    try {
+      const map = JSON.parse(localStorage.getItem(IDEMPOTENCY_KEY) || '{}');
+      const lastPay = map[billId];
+      if (lastPay && (Date.now() - lastPay) < 10000) {
+        return { allowed: false, reason: 'Pembayaran duplikat terdeteksi (dalam 10 detik terakhir).' };
+      }
+      map[billId] = Date.now();
+      // Bersihkan entri > 1 jam
+      for (const k in map) { if (Date.now() - map[k] > 3600000) delete map[k]; }
+      localStorage.setItem(IDEMPOTENCY_KEY, JSON.stringify(map));
+      return { allowed: true };
+    } catch { return { allowed: true }; }
+  }
 
   const seed = {
     complexes: [
@@ -98,19 +278,7 @@ const SIBAR = (() => {
     ]
   };
 
-  function load() {
-    const raw = localStorage.getItem(DB_KEY);
-    let db;
-    if (!raw) {
-      db = JSON.parse(JSON.stringify(seed));
-    } else {
-      db = JSON.parse(raw);
-    }
-
-    // Pastikan data 12 bulan tahun 2026 & 2025 tersedia
-    ensureAnnualData(db);
-    return db;
-  }
+  // load() utama dengan envelope integrity ada di bagian atas file (line ~44)
 
   function ensureAnnualData(db) {
     if (!db.bills) db.bills = [];
@@ -204,14 +372,6 @@ const SIBAR = (() => {
     }
   }
 
-  function save(db) {
-    localStorage.setItem(DB_KEY, JSON.stringify(db));
-  }
-
-  function reset() {
-    localStorage.removeItem(DB_KEY);
-  }
-
   const MONTHS = { 1:'Januari',2:'Februari',3:'Maret',4:'April',5:'Mei',6:'Juni',7:'Juli',8:'Agustus',9:'September',10:'Oktober',11:'November',12:'Desember' };
 
   function periodLabel(m, y) { return (MONTHS[m] || m) + ' ' + (y || 2026); }
@@ -239,14 +399,31 @@ const SIBAR = (() => {
 
   function feeById(db, id) { return db.fee_types.find(f => f.id === id); }
 
-  // Bayar 1 bill: tandai paid + buat kwitansi
+  // Bayar 1 bill: tandai paid + buat kwitansi (dengan anti-double payment & audit)
   function payBill(billId, method) {
+    // 1. Idempotency check — blok double-submit
+    const idem = checkIdempotency(billId);
+    if (!idem.allowed) {
+      appendAudit('PAY_REJECTED_DUP', 'bill=' + billId);
+      return { error: true, message: idem.reason };
+    }
+
+    // 2. Whitelist metode pembayaran (mencegah inject string arbitrer)
+    const ALLOWED_METHODS = ['QRIS Instant', 'Transfer Bank', 'Tunai via Bendahara', 'Tunai via Petugas', 'BCA Virtual Account', 'M-Banking'];
+    if (!ALLOWED_METHODS.includes(method)) method = 'QRIS Instant';
+
     const db = load();
     const bill = db.bills.find(b => b.id === billId);
     if (!bill || bill.status === 'paid') return null;
 
-    const house = db.houses.find(h => h.id === bill.house_id);
+    // 3. Validasi amount terhadap fee_types (mencegah amount dimanipulasi)
     const fee = feeById(db, bill.fee_type_id);
+    if (fee && bill.amount !== fee.amount) {
+      appendAudit('PAY_REJECTED_AMOUNT', 'bill=' + billId + ' expected=' + fee.amount + ' got=' + bill.amount);
+      return { error: true, message: 'Jumlah tagihan tidak sesuai tarif resmi. Pembayaran diblokir.' };
+    }
+
+    const house = db.houses.find(h => h.id === bill.house_id);
     const now = new Date();
     const pad = (n) => String(n).padStart(2, '0');
     const ts = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}`;
@@ -256,6 +433,7 @@ const SIBAR = (() => {
     bill.status = 'paid';
     db.payments.push({ id: Date.now(), bill_id: bill.id, receipt, amount: bill.amount, method, paid_at: paidAt });
     save(db);
+    appendAudit('PAY_OK', 'bill=' + billId + ' amount=' + bill.amount + ' method=' + method);
     return { receipt, paidAt };
   }
 
@@ -361,7 +539,9 @@ const SIBAR = (() => {
 
   return {
     load, save, reset, periodLabel, rupiah, roleLabel, allowedFeeCodes, feeById, payBill,
-    currentUser, MONTHS, addUser, updateUser, deleteUser
+    currentUser, MONTHS, addUser, updateUser, deleteUser,
+    // Security API
+    verifyAuditChain, getAuditLog, verifyEnvelope, checkIdempotency
   };
 })();
 

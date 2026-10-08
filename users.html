@@ -1476,34 +1476,41 @@
         container.appendChild(card);
       });
 
-      // Tambah opsi "Tambah Komplek Baru" (input teks langsung)
+      // Form tambah komplek baru — selalu terlihat di bawah daftar komplek
       const addNewDiv = document.createElement('div');
       addNewDiv.id = containerId + '_addnew';
-      addNewDiv.style.cssText = 'margin-top:4px;';
       addNewDiv.innerHTML = `
-        <button type="button"
-          style="font-size:11.5px; color:#0071e3; background:none; border:none; cursor:pointer; padding:4px 0; text-decoration:underline;"
-          onclick="toggleNewComplexInput('${containerId}', '${hiddenId}')">
-          + Komplek lain (ketik nama)
-        </button>
-        <div id="${containerId}_newinput" style="display:none; margin-top:6px;">
-          <input type="text" id="${containerId}_newname" class="form-control"
-            placeholder="Nama komplek baru..." style="margin-bottom:4px;">
-          <div class="form-grid-2" style="margin-top:4px;">
-            <input type="number" step="0.000001" id="${containerId}_newlat" class="form-control" placeholder="Latitude">
-            <input type="number" step="0.000001" id="${containerId}_newlng" class="form-control" placeholder="Longitude">
+        <div style="display:flex; align-items:center; gap:8px; margin:8px 0 6px;">
+          <div style="flex:1; height:1px; background:rgba(0,0,0,0.08);"></div>
+          <span style="font-size:11px; color:#8e8e93; white-space:nowrap;">atau tambah komplek baru</span>
+          <div style="flex:1; height:1px; background:rgba(0,0,0,0.08);"></div>
+        </div>
+        <div style="background:#f5f5f7; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+          <div class="form-group" style="margin:0;">
+            <label style="font-size:11px; color:#6e6e73; font-weight:600; text-transform:uppercase; letter-spacing:0.03em;">Nama Komplek</label>
+            <input type="text" id="${containerId}_newname" class="form-control"
+              placeholder="cth: Komplek Melati Indah RT 06" style="background:#fff;">
           </div>
-          <button type="button" class="btn-secondary" style="margin-top:6px; font-size:12px;"
-            onclick="saveNewComplex('${containerId}', '${hiddenId}')">Gunakan Komplek Ini</button>
+          <div class="form-grid-2" style="gap:8px;">
+            <div class="form-group" style="margin:0;">
+              <label style="font-size:11px; color:#6e6e73; font-weight:600; text-transform:uppercase; letter-spacing:0.03em;">Latitude</label>
+              <input type="number" step="0.000001" id="${containerId}_newlat" class="form-control" placeholder="-6.208763" style="background:#fff;">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label style="font-size:11px; color:#6e6e73; font-weight:600; text-transform:uppercase; letter-spacing:0.03em;">Longitude</label>
+              <input type="number" step="0.000001" id="${containerId}_newlng" class="form-control" placeholder="106.845599" style="background:#fff;">
+            </div>
+          </div>
+          <button type="button"
+            style="background:#0071e3; color:#fff; border:none; border-radius:10px; padding:9px 0;
+                   font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; width:100%;"
+            onclick="saveNewComplex('${containerId}', '${hiddenId}')">
+            + Simpan & Gunakan Komplek Ini
+          </button>
         </div>
       `;
       container.appendChild(addNewDiv);
     });
-  }
-
-  function toggleNewComplexInput(containerId, hiddenId) {
-    const inp = document.getElementById(containerId + '_newinput');
-    if (inp) inp.style.display = inp.style.display === 'none' ? 'block' : 'none';
   }
 
   function saveNewComplex(containerId, hiddenId) {
@@ -1727,13 +1734,30 @@
       <p>Tap titik lokasi yang tepat — marker akan muncul di sana</p>
     </div>
     <div id="mapContainer"></div>
-    <div id="mapPickerFooter">
-      <div class="coord-preview" id="mapCoordPreview">
-        Belum ada titik dipilih.<br>
-        <span style="color:#8e8e93;">Tap peta untuk memilih lokasi.</span>
+    <div id="mapPickerFooter" style="flex-direction:column; gap:8px;">
+      <!-- Baris 1: tombol aksi cepat -->
+      <div style="display:flex; gap:8px;">
+        <button type="button" id="btnMyLocation"
+          style="display:flex; align-items:center; gap:6px; background:#f5f5f7; border:1.5px solid rgba(0,0,0,0.12);
+                 color:#3a3a3c; border-radius:12px; padding:9px 14px; font-size:13px; font-weight:600;
+                 cursor:pointer; font-family:inherit; flex:1; justify-content:center;"
+          onclick="useMyLocation()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+            <path d="M12 5a7 7 0 1 0 7 7"/>
+          </svg>
+          Lokasi Saya
+        </button>
+        <button type="button" class="btn-map-cancel" onclick="closeMapPicker()"
+          style="padding:9px 14px; font-size:13px; border-radius:12px;">Batal</button>
+        <button type="button" class="btn-map-confirm" id="btnConfirmMap"
+          onclick="confirmMapLocation()" disabled
+          style="padding:9px 18px; font-size:13px; border-radius:12px;">Pilih</button>
       </div>
-      <button type="button" class="btn-map-cancel" onclick="closeMapPicker()">Batal</button>
-      <button type="button" class="btn-map-confirm" id="btnConfirmMap" onclick="confirmMapLocation()" disabled>Pilih</button>
+      <!-- Baris 2: preview koordinat -->
+      <div class="coord-preview" id="mapCoordPreview" style="width:100%; box-sizing:border-box;">
+        Belum ada titik dipilih. Tap peta atau gunakan <em>Lokasi Saya</em>.
+      </div>
     </div>
   </div>
 </div>
@@ -1892,9 +1916,55 @@ function confirmMapLocation() {
 function closeMapPicker() {
   const overlay = document.getElementById('mapPickerOverlay');
   overlay.classList.remove('active');
-  // Sembunyikan benar-benar setelah animasi
   setTimeout(() => { overlay.style.display = 'none'; }, 280);
   _mapPending = { lat: null, lng: null };
+}
+
+// ===== GUNAKAN LOKASI SAYA =====
+function useMyLocation() {
+  if (!navigator.geolocation) {
+    alert('Perangkat tidak mendukung GPS / Geolocation.');
+    return;
+  }
+  const btn = document.getElementById('btnMyLocation');
+  const origText = btn.innerHTML;
+  btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Mencari…';
+  btn.disabled = true;
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = parseFloat(pos.coords.latitude.toFixed(6));
+      const lng = parseFloat(pos.coords.longitude.toFixed(6));
+      _mapPending = { lat, lng };
+
+      if (_mapInstance) {
+        _mapInstance.setView([lat, lng], 17);
+        if (_mapMarker) {
+          _mapMarker.setLatLng([lat, lng]);
+        } else {
+          _mapMarker = L.marker([lat, lng], {
+            icon: _getPinIcon(), draggable: true
+          }).addTo(_mapInstance);
+          _mapMarker.on('dragend', _onMarkerDrag);
+        }
+        updateCoordPreview();
+        document.getElementById('btnConfirmMap').disabled = false;
+      }
+
+      btn.innerHTML = origText;
+      btn.disabled = false;
+    },
+    (err) => {
+      btn.innerHTML = origText;
+      btn.disabled = false;
+      let msg = 'Gagal mendapatkan lokasi.';
+      if (err.code === 1) msg = 'Izin lokasi ditolak. Aktifkan GPS di pengaturan browser.';
+      if (err.code === 2) msg = 'Sinyal GPS tidak tersedia.';
+      if (err.code === 3) msg = 'Waktu tunggu GPS habis. Coba lagi.';
+      alert(msg);
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
 }
 </script>
 

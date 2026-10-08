@@ -1522,7 +1522,7 @@
             style="background:#0071e3; color:#fff; border:none; border-radius:10px; padding:9px 0;
                    font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; width:100%;"
             onclick="saveNewComplex('${containerId}', '${hiddenId}')">
-            + Simpan & Gunakan Komplek Ini
+            + Simpan & Gunakan Alamat Ini
           </button>
         </div>
       `;
@@ -1533,22 +1533,26 @@
   function saveNewComplex(containerId, hiddenId) {
     const name = document.getElementById(containerId + '_newname')?.value.trim();
     if (!name) { alert('Nama komplek wajib diisi.'); return; }
-    
+
     // Ambil koordinat dari field koordinat pos (add_lat/edit_lat)
     const isAdd = containerId.includes('add');
     const latField = isAdd ? 'add_lat' : 'edit_lat';
     const lngField = isAdd ? 'add_lng' : 'edit_lng';
     const lat = parseFloat(document.getElementById(latField)?.value) || null;
     const lng = parseFloat(document.getElementById(lngField)?.value) || null;
-    
+
     if (!lat || !lng) {
       alert('Koordinat komplek belum diisi. Gunakan tombol "Pilih Lokasi di Peta" di atas untuk mengisi koordinat pos terlebih dahulu.');
       return;
     }
-    
+
+    // Alamat ikut disimpan ke komplek dari field alamat lengkap
+    const addrField = isAdd ? 'add_address' : 'edit_address';
+    const address = document.getElementById(addrField)?.value.trim() || '';
+
     const db = SIBAR.load();
     const newId = (db.complexes.reduce((max, c) => Math.max(max, c.id), 0) || 0) + 1;
-    db.complexes.push({ id: newId, code: 'cx-' + newId, name, address: '', latitude: lat, longitude: lng, city: '' });
+    db.complexes.push({ id: newId, code: 'cx-' + newId, name, address: address, latitude: lat, longitude: lng, city: '' });
     SIBAR.save(db);
     const hiddenInput = document.getElementById(hiddenId);
     if (hiddenInput) hiddenInput.value = newId;

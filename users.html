@@ -1011,28 +1011,26 @@
           <div style="font-size:11px; font-weight:600; text-transform:uppercase; color:#0071e3; letter-spacing:0.04em; margin-bottom:8px;">
             📍 Komplek & Lokasi
           </div>
-          <!-- Pilihan komplek sebagai radio card visual (hindari native picker iOS) -->
-          <div id="addComplexCards" style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
-            <!-- Diisi JS dari data -->
-          </div>
-          <!-- Koordinat GPS — selalu tampil, bisa diisi bebas -->
+          <!-- Koordinat GPS Pos Tugas -->
           <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">Koordinat GPS Pos Tugas</div>
           <div id="addKoordSection">
-            <div class="form-grid-2">
-              <div class="form-group">
-                <label>Latitude</label>
-                <input type="number" step="0.000001" id="add_lat" class="form-control" placeholder="-6.208763">
-              </div>
-              <div class="form-group">
-                <label>Longitude</label>
-                <input type="number" step="0.000001" id="add_lng" class="form-control" placeholder="106.845599">
-              </div>
-            </div>
+            <input type="hidden" id="add_lat">
+            <input type="hidden" id="add_lng">
             <button type="button" class="btn-pick-map" onclick="openMapPicker('add')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
               Pilih Lokasi di Peta
             </button>
-            <div style="font-size:10.5px; color:#0071e3; margin-top:3px;">💡 Terisi dari komplek — bisa diubah bebas atau pilih via peta</div>
+            <div style="font-size:10.5px; color:#0071e3; margin-top:3px;">💡 Klik tombol untuk set koordinat pos</div>
+          </div>
+          <!-- Alamat (auto-fill dari peta, bisa edit manual) -->
+          <div class="form-group" style="margin-top:10px;">
+            <label>Alamat Lengkap</label>
+            <textarea id="add_address" class="form-control" rows="2" placeholder="Alamat akan terisi otomatis dari peta, atau ketik manual"></textarea>
+          </div>
+          <!-- Pilihan komplek sebagai radio card visual -->
+          <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin:10px 0 4px;">Nama Komplek</div>
+          <div id="addComplexCards" style="display:flex; flex-direction:column; gap:6px;">
+            <!-- Diisi JS dari data -->
           </div>
         </div>
 
@@ -1141,29 +1139,27 @@
           <div style="font-size:11px; font-weight:600; text-transform:uppercase; color:#0071e3; letter-spacing:0.04em; margin-bottom:8px;">
             📍 Komplek & Lokasi
           </div>
-          <!-- Pilihan komplek sebagai radio card visual -->
-          <input type="hidden" id="edit_complex_id" value="1">
-          <div id="editComplexCards" style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
-            <!-- Diisi JS dari data -->
-          </div>
-          <!-- Koordinat GPS — selalu tampil -->
+          <!-- Koordinat GPS Pos Tugas -->
           <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">Koordinat GPS Pos Tugas</div>
           <div id="editKoordSection">
-            <div class="form-grid-2">
-              <div class="form-group">
-                <label>Latitude</label>
-                <input type="number" step="0.000001" id="edit_lat" class="form-control" placeholder="-6.208763">
-              </div>
-              <div class="form-group">
-                <label>Longitude</label>
-                <input type="number" step="0.000001" id="edit_lng" class="form-control" placeholder="106.845599">
-              </div>
-            </div>
+            <input type="hidden" id="edit_lat">
+            <input type="hidden" id="edit_lng">
             <button type="button" class="btn-pick-map" onclick="openMapPicker('edit')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
               Pilih Lokasi di Peta
             </button>
-            <div style="font-size:10.5px; color:#0071e3; margin-top:3px;">💡 Bisa diubah bebas — tidak terkunci ke koordinat komplek</div>
+            <div style="font-size:10.5px; color:#0071e3; margin-top:3px;">💡 Klik tombol untuk ubah koordinat pos</div>
+          </div>
+          <!-- Alamat -->
+          <div class="form-group" style="margin-top:10px;">
+            <label>Alamat Lengkap</label>
+            <textarea id="edit_address" class="form-control" rows="2" placeholder="Alamat akan terisi otomatis dari peta, atau ketik manual"></textarea>
+          </div>
+          <!-- Pilihan komplek sebagai radio card visual -->
+          <input type="hidden" id="edit_complex_id" value="1">
+          <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin:10px 0 4px;">Nama Komplek</div>
+          <div id="editComplexCards" style="display:flex; flex-direction:column; gap:6px;">
+            <!-- Diisi JS dari data -->
           </div>
         </div>
 
@@ -1485,22 +1481,15 @@
           <span style="font-size:11px; color:#8e8e93; white-space:nowrap;">atau tambah komplek baru</span>
           <div style="flex:1; height:1px; background:rgba(0,0,0,0.08);"></div>
         </div>
-        <div style="background:#f5f5f7; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+        <div style="background:#f5f5f7; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:10px;">
           <div class="form-group" style="margin:0;">
             <label style="font-size:11px; color:#6e6e73; font-weight:600; text-transform:uppercase; letter-spacing:0.03em;">Nama Komplek</label>
             <input type="text" id="${containerId}_newname" class="form-control"
               placeholder="cth: Komplek Melati Indah RT 06" style="background:#fff;">
           </div>
-          <div class="form-grid-2" style="gap:8px;">
-            <div class="form-group" style="margin:0;">
-              <label style="font-size:11px; color:#6e6e73; font-weight:600; text-transform:uppercase; letter-spacing:0.03em;">Latitude</label>
-              <input type="number" step="0.000001" id="${containerId}_newlat" class="form-control" placeholder="-6.208763" style="background:#fff;">
-            </div>
-            <div class="form-group" style="margin:0;">
-              <label style="font-size:11px; color:#6e6e73; font-weight:600; text-transform:uppercase; letter-spacing:0.03em;">Longitude</label>
-              <input type="number" step="0.000001" id="${containerId}_newlng" class="form-control" placeholder="106.845599" style="background:#fff;">
-            </div>
-          </div>
+          <p style="font-size:11.5px; color:#6e6e73; margin:0; line-height:1.4;">
+            💡 Koordinat komplek diambil dari <strong>tombol peta</strong> di bawah (Pos Satpam).
+          </p>
           <button type="button"
             style="background:#0071e3; color:#fff; border:none; border-radius:10px; padding:9px 0;
                    font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; width:100%;"
@@ -1514,11 +1503,22 @@
   }
 
   function saveNewComplex(containerId, hiddenId) {
-    const name = document.getElementById(containerId + '_newname')?.value?.trim();
-    if (!name) { showToast('Nama komplek wajib diisi', true); return; }
-    const lat  = parseFloat(document.getElementById(containerId + '_newlat')?.value) || null;
-    const lng  = parseFloat(document.getElementById(containerId + '_newlng')?.value) || null;
-    const db   = SIBAR.load();
+    const name = document.getElementById(containerId + '_newname')?.value.trim();
+    if (!name) { alert('Nama komplek wajib diisi.'); return; }
+    
+    // Ambil koordinat dari field Pos Satpam (add_latitude/edit_latitude)
+    const isAdd = containerId.includes('add');
+    const latField = isAdd ? 'add_latitude' : 'edit_latitude';
+    const lngField = isAdd ? 'add_longitude' : 'edit_longitude';
+    const lat = parseFloat(document.getElementById(latField)?.value) || null;
+    const lng = parseFloat(document.getElementById(lngField)?.value) || null;
+    
+    if (!lat || !lng) {
+      alert('Koordinat komplek belum diisi. Gunakan tombol Pilih Lokasi di Peta untuk mengisi Pos Satpam.');
+      return;
+    }
+    
+    const db = SIBAR.load();
     const newId = (db.complexes.reduce((max, c) => Math.max(max, c.id), 0) || 0) + 1;
     db.complexes.push({ id: newId, code: 'cx-' + newId, name, address: '', latitude: lat, longitude: lng, city: '' });
     SIBAR.save(db);
@@ -1598,6 +1598,7 @@
       complex_id: Number(document.getElementById('add_complex_id').value || 1),
       latitude: parseFloat(document.getElementById('add_lat').value) || null,
       longitude: parseFloat(document.getElementById('add_lng').value) || null,
+      address: document.getElementById('add_address')?.value.trim() || '',
       house_choice: document.querySelector('input[name="add_house_choice"]:checked')?.value || 'new',
       block: document.getElementById('add_block').value.trim(),
       number: document.getElementById('add_number').value.trim(),
@@ -1647,6 +1648,10 @@
       if (elat) elat.value = user.latitude || '';
       if (elng) elng.value = user.longitude || '';
     }
+    
+    // Isi alamat
+    const eaddr = document.getElementById('edit_address');
+    if (eaddr) eaddr.value = user.address || '';
 
     if (user.role === 'warga' && house) {
       document.getElementById('edit_block').value = house.block || '';
@@ -1680,6 +1685,7 @@
       complex_id: Number(document.getElementById('edit_complex_id')?.value || 1),
       latitude: parseFloat(document.getElementById('edit_lat')?.value) || null,
       longitude: parseFloat(document.getElementById('edit_lng')?.value) || null,
+      address: document.getElementById('edit_address')?.value.trim() || '',
       block: document.getElementById('edit_block').value.trim(),
       number: document.getElementById('edit_number').value.trim(),
       lane: document.getElementById('edit_lane').value.trim(),
@@ -1910,6 +1916,20 @@ function confirmMapLocation() {
   if (_mapPending.lat === null) return;
   document.getElementById(_mapPickerFor + '_lat').value = _mapPending.lat;
   document.getElementById(_mapPickerFor + '_lng').value = _mapPending.lng;
+  
+  // Reverse geocode via Nominatim untuk isi alamat otomatis
+  const addressField = document.getElementById(_mapPickerFor + '_address');
+  if (addressField) {
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${_mapPending.lat}&lon=${_mapPending.lng}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.display_name) {
+          addressField.value = data.display_name;
+        }
+      })
+      .catch(() => {});
+  }
+  
   closeMapPicker();
 }
 

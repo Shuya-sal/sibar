@@ -307,7 +307,11 @@ const SIBAR = (() => {
       username: data.username.toLowerCase(),
       role: data.role,
       name: data.name,
-      phone: data.phone
+      phone: data.phone,
+      complex_id: data.complex_id || 1,
+      latitude: data.latitude || null,
+      longitude: data.longitude || null,
+      address: data.address || ''
     };
     db.users.push(newUser);
     save(db);
@@ -325,6 +329,11 @@ const SIBAR = (() => {
     if (data.role && user.role !== 'super_admin') {
       user.role = data.role;
     }
+    
+    user.complex_id = data.complex_id || user.complex_id || 1;
+    user.latitude = data.latitude !== undefined ? data.latitude : user.latitude;
+    user.longitude = data.longitude !== undefined ? data.longitude : user.longitude;
+    user.address = data.address !== undefined ? data.address : (user.address || '');
 
     if (user.role === 'warga' && user.house_id) {
       const house = db.houses.find(h => h.id === user.house_id);

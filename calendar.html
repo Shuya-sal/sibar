@@ -618,6 +618,15 @@
             </select>
           </div>
 
+          <!-- Pengingat pembayaran (admin/petugas) -->
+          <div class="filter-group-inline" id="remindFilter" style="display:none;">
+            <button type="button" onclick="remindAllUnpaid()"
+              style="background:#25d366; color:#fff; border:none; border-radius:8px; padding:7px 12px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:5px; min-height:38px; white-space:nowrap;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Ingatkan
+            </button>
+          </div>
+
           <!-- Blok -->
           <div class="filter-group-inline" id="blockFilter">
             <span class="filter-label">Blok</span>
@@ -727,6 +736,59 @@
   let currentMonthFilter = 'all';
   let selectedHouseId = 4; // Default B3-12
 
+  /* ================= PENGINGAT PEMBAYARAN (WhatsApp & SMS) ================= */
+  // Demo statis: buka wa.me / sms: dengan pesan terisi otomatis.
+  // Pengiriman otomatis massal butuh server (versi PHP + WhatsApp Business API).
+  function sendReminder(channel, phone, name, unit, unpaidTotal, unpaidCount) {
+    const year = currentYear;
+    const bulan = SibarData.MONTHS[new Date().getMonth() + 1] || 'bulan ini';
+    const msg =
+      'Assalamualaikum Bpk/Ibu ' + name + ',\n\n' +
+      'Kami dari pengurus RT 04 mengingatkan bahwa iuran ' + bulan + ' ' + year + ' untuk unit ' + unit + ' belum terselesaikan.\n\n' +
+      'Ketunggakan: Rp ' + unpaidTotal.toLocaleString('id-ID') + '\n' +
+      (unpaidCount > 0 ? 'Pos belum lunas bulan ini: ' + unpaidCount + ' (Jaga Malam/Jaga Siang/Sampah)\n' : '') +
+      '\nMohon lakukan pembayaran melalui QRIS, transfer bank, atau langsung kepada petugas.\n\n' +
+      'Terima kasih atas kerja samanya.\n' +
+      '— Pengurus SIBAR RT 04';
+
+    const phoneIntl = phone.replace(/^0/, '62').replace(/[^0-9]/g, '');
+    if (channel === 'wa') {
+      window.open('https://wa.me/' + phoneIntl + '?text=' + encodeURIComponent(msg), '_blank');
+    } else {
+      // sms: tidak support body di semua perangkat, iOS perlu &body
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      window.open('sms:' + phoneIntl + (isIOS ? '&body=' : '?body=') + encodeURIComponent(msg), '_self');
+    }
+  }
+
+  // Pengingat massal: buka daftar unit menunggak, petugas pilih kirim satu per satu
+  function remindAllUnpaid() {
+    const db = SibarData.load();
+    const cxSel = document.getElementById('complexSelect');
+    const cxFilter = cxSel ? cxSel.value : '';
+    const houses = db.houses.filter(h => !cxFilter || String(h.complex_id) === String(cxFilter));
+    const list = [];
+    houses.forEach(h => {
+      const kk = db.users.find(u => u.house_id===h.id && u.role==='warga');
+      if (!kk || !kk.phone) return;
+      let hDue=0, hPaid=0;
+      db.bills.filter(b => b.house_id===h.id && b.year===currentYear).forEach(b => {
+        hDue += b.amount;
+        if (b.status==='paid') hPaid += b.amount;
+      });
+      if (hPaid < hDue) list.push({ name: kk.name, phone: kk.phone, unit: 'Blok ' + h.block + '/' + h.number, total: hDue - hPaid });
+    });
+
+    if (list.length === 0) { alert('Semua unit sudah lunas. Tidak ada pengingat yang perlu dikirim.'); return; }
+
+    // Tampilkan daftar dalam prompt ringkas untuk copy-paste atau kirim via WA satu per satu
+    const lines = list.map((u, i) => (i+1) + '. ' + u.name + ' (' + u.unit + ') — Rp ' + u.total.toLocaleString('id-ID') + ' — ' + u.phone).join('\n');
+    const first = list[0];
+    if (confirm('Unit menunggak (' + list.length + '):\n\n' + lines + '\n\nBuka WhatsApp untuk pengingat unit pertama (' + first.name + ')?')) {
+      sendReminder('wa', first.phone, first.name, first.unit, first.total, 0);
+    }
+  }
+
   const user = SibarData.currentUser();
   if (user) {
     document.getElementById('sidebarAvatar').innerText = (user.name || user.username).substring(0, 2).toUpperCase();
@@ -744,6 +806,9 @@
     } else {
       document.getElementById('navDashboardLink').style.display = 'none';
       document.getElementById('mobDashboardLink').style.display = 'none';
+      // Tombol pengingat hanya untuk admin/petugas
+      const rf = document.getElementById('remindFilter');
+      if (rf) rf.style.display = '';
     }
   }
 
@@ -906,7 +971,8 @@
       document.getElementById('kpiCompliance').innerText = pct + '%';
 
       // Render grid ringkasan per unit
-      const grid = document.getElementById('monthGrid');
+      const grid = document.getElementById('calendarGridContainer');
+      if (!grid) return;
       grid.innerHTML = '';
       houses.forEach(h => {
         const kk = db.users.find(u => u.house_id===h.id && u.role==='warga');
@@ -918,6 +984,23 @@
         });
         const hPct = hDue > 0 ? Math.round(hPaid/hDue*100) : 0;
         const lunas = hPaid >= hDue && hDue > 0;
+        // Tagihan belum lunas bulan berjalan (untuk pengingat)
+        const nowMonth = new Date().getMonth() + 1;
+        const unpaidNow = db.bills.filter(b => b.house_id===h.id && b.year===currentYear && b.month===nowMonth && b.status==='unpaid');
+        const unpaidTotal = hDue - hPaid;
+        // Tombol pengingat hanya untuk unit menunggak dengan nomor HP terdaftar
+        const remindBtns = (!lunas && kk && kk.phone) ? `
+          <div style="display:flex; gap:6px; margin-top:8px;">
+            <button type="button" onclick="sendReminder('wa', '${escHtml(kk.phone)}', '${escHtml(nm)}', 'Blok ${escHtml(h.block)}/${escHtml(h.number)}', ${unpaidTotal}, ${unpaidNow.length})"
+              style="flex:1; background:#25d366; color:#fff; border:none; border-radius:8px; padding:8px 4px; font-size:11.5px; font-weight:600; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:4px; min-height:44px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              WA
+            </button>
+            <button type="button" onclick="sendReminder('sms', '${escHtml(kk.phone)}', '${escHtml(nm)}', 'Blok ${escHtml(h.block)}/${escHtml(h.number)}', ${unpaidTotal}, ${unpaidNow.length})"
+              style="flex:1; background:#0071e3; color:#fff; border:none; border-radius:8px; padding:8px 4px; font-size:11.5px; font-weight:600; cursor:pointer; font-family:inherit; min-height:44px;">
+              SMS
+            </button>
+          </div>` : '';
         const card = document.createElement('div');
         card.className = 'month-card' + (lunas ? ' paid' : '');
         card.innerHTML = `
@@ -931,6 +1014,7 @@
             <div style="width:${hPct}%; background:${lunas?'#34c759':'#0071e3'}; height:100%;"></div>
           </div>
           <div style="font-size:11px; color:var(--text-tertiary); margin-top:3px;">${hPct}% kepatuhan</div>
+          ${remindBtns}
         `;
         grid.appendChild(card);
       });

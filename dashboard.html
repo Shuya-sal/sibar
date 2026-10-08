@@ -462,7 +462,7 @@
     document.getElementById('userNameEl').textContent = user.name;
     document.getElementById('houseTagEl').textContent = `Rumah Blok ${house.block} / No. ${house.number}`;
     document.getElementById('heroGreeting').textContent = `Selamat datang, ${user.name}`;
-    document.getElementById('heroDesc').innerHTML = `Akun resmi unit rumah <strong>Blok ${house.block} No. ${house.number}</strong> (${house.lane}). Pantau kewajiban iuran jaga malam, jaga siang, dan sampah bulan ini.`;
+    document.getElementById('heroDesc').innerHTML = `Akun resmi unit rumah <strong>Blok ${escHtml(house.block)} No. ${escHtml(house.number)}</strong> (${escHtml(house.lane)}). Pantau kewajiban iuran jaga malam, jaga siang, dan sampah bulan ini.`;
     document.getElementById('modalHouse').textContent = `Rumah: Blok ${house.block} No. ${house.number} (${user.name})`;
 
     const myUnpaid = db.bills.filter(b => b.house_id === house.id && b.year === YEAR && b.month === MONTH && b.status === 'unpaid');
@@ -625,6 +625,14 @@
     } else {
       window.location.href = path;
     }
+  }
+</script>
+<script>
+  // Escape HTML untuk mencegah XSS
+  function escHtml(s) {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 </script>
 </body>

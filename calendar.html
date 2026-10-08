@@ -922,7 +922,7 @@
     const ownerName = house.owner || (kkUser ? kkUser.name : 'Belum Terdaftar');
 
     document.getElementById('heroTitle').innerText = `Kalender Iuran Tahunan ${currentYear}`;
-    document.getElementById('heroDesc').innerHTML = `Rekapitulasi 12 bulan untuk unit <strong>Blok ${house.block} / No. ${house.number}</strong> (${ownerName}) — ${house.lane}.`;
+    document.getElementById('heroDesc').innerHTML = `Rekapitulasi 12 bulan untuk unit <strong>Blok ${escHtml(house.block)} / No. ${escHtml(house.number)}</strong> (${escHtml(ownerName)}) — ${escHtml(house.lane)}.`;
     document.getElementById('tagUnit').innerText = `Unit: Blok ${house.block}/${house.number}`;
     document.getElementById('tagHuni').innerText = `Status: ${house.status_huni || 'Tetap'}`;
 
@@ -1102,6 +1102,14 @@
   function spaDoLogout() {
     sessionStorage.removeItem('sibar_demo_session');
     spaGo('login');
+  }
+</script>
+<script>
+  // Escape HTML untuk mencegah XSS
+  function escHtml(s) {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 </script>
 </body>

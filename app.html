@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SIBAR — Portal Iuran Warga (Demo SPA)</title>
+  <style>
+    :root {
+      --bg-page: #f5f5f7;
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --text-primary: #1d1d1f;
+      --text-secondary: #6e6e73;
+      --accent-blue: #0071e3;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-page); color: var(--text-primary);
+      letter-spacing: -0.014em;
+      overflow: hidden; /* shell tidak scroll — scroll di dalam iframe */
+    }
+
+    /* ===== APP SHELL ===== */
+    #appShell { height: 100%; display: flex; flex-direction: column; }
+
+    /* Frame container */
+    #frameWrap { flex: 1; position: relative; min-height: 0; }
+    .page-frame {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      border: none;
+      display: none;
+      background: var(--bg-page);
+    }
+    .page-frame.active { display: block; }
+
+    /* Splash saat frame pertama dimuat */
+    .frame-loading {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-page); z-index: 5;
+      pointer-events: none;
+      opacity: 1; transition: opacity 0.2s ease;
+    }
+    .frame-loading.hidden { opacity: 0; }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid rgba(0,113,227,0.15);
+      border-top-color: var(--accent-blue);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Splash login (halaman publik) */
+    body.public-mode #frameWrap { display: block; }
+  </style>
+</head>
+<body>
+
+<div id="appShell">
+  <div id="frameWrap">
+    <!-- Loading indicator per-frame -->
+    <div class="frame-loading" id="frameLoading">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Halaman-halaman SIBAR sebagai iframe keep-alive -->
+    <iframe class="page-frame" id="frame-login"      data-src="login.html"      title="Login"></iframe>
+    <iframe class="page-frame" id="frame-dashboard"  data-src="dashboard.html"  title="Dashboard Warga"></iframe>
+    <iframe class="page-frame" id="frame-monitoring" data-src="monitoring.html" title="Peta Rumah"></iframe>
+    <iframe class="page-frame" id="frame-calendar"   data-src="calendar.html"   title="Kalender Iuran"></iframe>
+    <iframe class="page-frame" id="frame-users"      data-src="users.html"      title="Kelola Akun"></iframe>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   SIBAR SPA SHELL — Hash Router + Keep-Alive Frames
+   - Navigasi: #/login #/dashboard #/monitoring #/calendar #/users
+   - Frame lazy-load: baru dimuat saat pertama dikunjungi
+   - Keep-alive: state halaman tetap saat pindah tab (tanpa reload)
+   - Browser back/forward jalan normal
+   ============================================================ */
+
+const ROUTES = ['login', 'dashboard', 'monitoring', 'calendar', 'users'];
+const loadingEl = document.getElementById('frameLoading');
+let currentRoute = null;
+
+function getRouteFromHash() {
+  const h = (window.location.hash || '').replace(/^#\/?/, '').toLowerCase();
+  return ROUTES.includes(h) ? h : null;
+}
+
+function navigateTo(route, push = true) {
+  if (!ROUTES.includes(route)) route = 'login';
+
+  // Update hash (memicu hashchange -> routeTo)
+  if (push && getRouteFromHash() !== route) {
+    window.location.hash = '/' + route;
+    return; // hashchange handler akan memanggil routeTo
+  }
+  routeTo(route);
+}
+
+function routeTo(route) {
+  if (route === currentRoute) return;
+  currentRoute = route;
+
+  // Tampilkan frame target, sembunyikan lainnya (keep-alive: tidak direload)
+  ROUTES.forEach(r => {
+    const frame = document.getElementById('frame-' + r);
+    if (r === route) {
+      // Lazy-load: set src saat pertama kali dibutuhkan
+      if (!frame.src && frame.dataset.src) {
+        frame.src = frame.dataset.src;
+        showLoading();
+        frame.addEventListener('load', hideLoading, { once: true });
+      }
+      frame.classList.add('active');
+    } else {
+      frame.classList.remove('active');
+    }
+  });
+}
+
+function showLoading() { loadingEl.classList.remove('hidden'); }
+function hideLoading() { loadingEl.classList.add('hidden'); }
+
+/* ===== Router events ===== */
+window.addEventListener('hashchange', () => {
+  const route = getRouteFromHash() || 'login';
+  routeTo(route);
+});
+
+/* ===== Init ===== */
+(function init() {
+  // Route awal dari hash, atau default ke login
+  const initial = getRouteFromHash() || 'login';
+  // Normalisasi hash URL
+  if (!getRouteFromHash()) {
+    window.location.hash = '/' + initial;
+  }
+  routeTo(initial);
+})();
+
+/* ===== Expose untuk halaman dalam iframe ===== */
+/* Halaman di dalam iframe bisa memanggil:
+   parent.SIBAR_SPA.navigate('users')  -> pindah tab
+   parent.SIBAR_SPA.reloadFrame('calendar') -> paksa refresh frame
+*/
+window.SIBAR_SPA = {
+  navigate: (route) => navigateTo(route, true),
+  reloadFrame: (route) => {
+    const frame = document.getElementById('frame-' + route);
+    if (frame) {
+      frame.src = frame.dataset.src + '?t=' + Date.now();
+    }
+  },
+  currentRoute: () => currentRoute
+};
+</script>
+
+</body>
+</html>

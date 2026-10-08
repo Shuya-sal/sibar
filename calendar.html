@@ -517,27 +517,27 @@
 
     <nav class="nav-menu">
       <div class="nav-label">Navigasi Utama</div>
-      <a href="dashboard.html" class="nav-item" id="navDashboardLink">
+      <a href="javascript:void(0)" onclick="spaGo('dashboard')" class="nav-item" id="navDashboardLink">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
         Dashboard Warga
       </a>
-      <a href="monitoring.html" class="nav-item" id="navMonitoringLink">
+      <a href="javascript:void(0)" onclick="spaGo('monitoring')" class="nav-item" id="navMonitoringLink">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         Peta Rumah
       </a>
-      <a href="calendar.html" class="nav-item active">
+      <a href="javascript:void(0)" onclick="spaGo('calendar')" class="nav-item active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
         Kalender &amp; Rekap Tahunan
       </a>
 
       <div class="nav-label" id="adminMenuLabel">Administrasi</div>
-      <a href="users.html" class="nav-item" id="navUsersLink">
+      <a href="javascript:void(0)" onclick="spaGo('users')" class="nav-item" id="navUsersLink">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Kelola Akun
       </a>
 
       <div class="nav-label">Sesi</div>
-      <a href="login.html" class="nav-item" style="color:var(--accent-red);">
+      <a href="javascript:void(0)" class="nav-item" style="color:var(--accent-red);" onclick="spaDoLogout()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Ganti Akun / Keluar
       </a>
@@ -674,23 +674,23 @@
 
 <!-- BOTTOM TAB BAR (MOBILE) -->
 <nav class="ios-bottom-tabbar">
-  <a href="dashboard.html" class="tabbar-item" id="mobDashboardLink">
+  <a href="javascript:void(0)" onclick="spaGo('dashboard')" class="tabbar-item" id="mobDashboardLink">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
     <span>Dashboard</span>
   </a>
-  <a href="monitoring.html" class="tabbar-item" id="mobMonitoringLink">
+  <a href="javascript:void(0)" onclick="spaGo('monitoring')" class="tabbar-item" id="mobMonitoringLink">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
     <span>Peta</span>
   </a>
-  <a href="calendar.html" class="tabbar-item active">
+  <a href="javascript:void(0)" onclick="spaGo('calendar')" class="tabbar-item active">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
     <span>Kalender</span>
   </a>
-  <a href="users.html" class="tabbar-item" id="mobUsersLink">
+  <a href="javascript:void(0)" onclick="spaGo('users')" class="tabbar-item" id="mobUsersLink">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     <span>Akun</span>
   </a>
-  <a href="login.html" class="tabbar-item" style="color:var(--accent-red);">
+  <a href="javascript:void(0)" class="tabbar-item" style="color:var(--accent-red);" onclick="spaDoLogout()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     <span>Keluar</span>
   </a>
@@ -1089,5 +1089,20 @@
   initFilters();
 </script>
 
+<script>
+  function spaGo(route) {
+    if (window.parent && window.parent.SIBAR_SPA) {
+      window.parent.SIBAR_SPA.navigate(route);
+    } else {
+      window.location.href = 'app.html#/' + route;
+    }
+  }
+</script>
+<script>
+  function spaDoLogout() {
+    sessionStorage.removeItem('sibar_demo_session');
+    spaGo('login');
+  }
+</script>
 </body>
 </html>

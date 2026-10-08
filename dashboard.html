@@ -261,12 +261,12 @@
     </div>
     <nav class="nav-menu">
       <div class="nav-label">Navigasi Utama</div>
-      <a href="dashboard.html" class="nav-item active">📊 Dashboard</a>
+      <a href="javascript:void(0)" onclick="spaGo('dashboard')" class="nav-item active">📊 Dashboard</a>
       <a href="#unpaidSection" class="nav-item">💳 Tagihan Saya <span id="sidebarBadge" class="status-badge unpaid" style="margin-left:auto;">—</span></a>
       <a href="#historySection" class="nav-item">🕐 Riwayat Pembayaran</a>
-      <a href="calendar.html" class="nav-item">📅 Kalender &amp; Rekap 12 Bulan</a>
+      <a href="javascript:void(0)" onclick="spaGo('calendar')" class="nav-item">📅 Kalender &amp; Rekap 12 Bulan</a>
       <div class="nav-label">Akun</div>
-      <a href="login.html" class="nav-item logout" onclick="SIBAR_DEMO_LOGOUT()">⏻ Keluar (Logout)</a>
+      <a href="javascript:void(0)" class="nav-item logout" onclick="spaDoLogout()">⏻ Keluar (Logout)</a>
     </nav>
     <div class="sidebar-footer">
       <div class="avatar" id="avatarEl">—</div>
@@ -410,11 +410,11 @@
 
 <!-- APPLE IOS NATIVE BOTTOM TAB BAR -->
 <nav class="ios-bottom-tabbar">
-  <a href="dashboard.html" class="tabbar-item active">
+  <a href="javascript:void(0)" onclick="spaGo('dashboard')" class="tabbar-item active">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
     <span>Tagihan</span>
   </a>
-  <a href="calendar.html" class="tabbar-item">
+  <a href="javascript:void(0)" onclick="spaGo('calendar')" class="tabbar-item">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
     <span>Kalender</span>
   </a>
@@ -422,7 +422,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
     <span>Riwayat</span>
   </a>
-  <a href="login.html" class="tabbar-item" style="color:var(--accent-red);" onclick="sessionStorage.removeItem('sibar_demo_session')">
+  <a href="javascript:void(0)" class="tabbar-item" style="color:var(--accent-red);" onclick="sessionStorage.removeItem('sibar_demo_session')spaGo(\'login\')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     <span>Keluar</span>
   </a>
@@ -431,12 +431,12 @@
 <script src="sibar-demo-data.js"></script>
 <script>
   const session = SIBAR.currentUser();
-  if (!session || session.role !== 'warga') { window.location.href = 'login.html'; }
+  if (!session || session.role !== 'warga') { spaRedirect('app.html#/login'); }
 
   const YEAR = 2026, MONTH = 10;
   let payTarget = 'all';
 
-  function logout() { sessionStorage.removeItem('sibar_demo_session'); window.location.href = 'login.html'; }
+  function logout() { sessionStorage.removeItem('sibar_demo_session'); spaRedirect('app.html#/login'); }
 
   function toast(msg) {
     const t = document.getElementById('toastBox');
@@ -449,7 +449,7 @@
     if (confirm('Reset semua data demo ke kondisi awal?')) {
       SIBAR.reset();
       sessionStorage.removeItem('sibar_demo_session');
-      window.location.href = 'login.html';
+      spaRedirect('app.html#/login');
     }
   }
 
@@ -606,5 +606,26 @@
   render();
 </script>
 
+<script>
+  function spaGo(route) {
+    if (window.parent && window.parent.SIBAR_SPA) {
+      window.parent.SIBAR_SPA.navigate(route);
+    } else {
+      window.location.href = 'app.html#/' + route;
+    }
+  }
+</script>
+<script>
+  // Redirect helper SPA-aware: jika dalam iframe, biarkan shell yang navigasi
+  function spaRedirect(path) {
+    // path contoh: 'app.html#/login'
+    if (window.parent && window.parent !== window && window.parent.SIBAR_SPA) {
+      var route = path.split('#/')[1];
+      window.parent.SIBAR_SPA.navigate(route);
+    } else {
+      window.location.href = path;
+    }
+  }
+</script>
 </body>
 </html>

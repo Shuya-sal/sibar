@@ -245,6 +245,8 @@
       .ios-bottom-tabbar { display: flex; }
       .mobile-sticky-pay-bar { display: flex; }
     }
+      html.spa-child .sidebar, html.spa-child .top-header .btn-header, html.spa-child .ios-bottom-tabbar { display: none !important; }
+    html.spa-child .app-container { display: block !important; }
   </style>
 </head>
 <body>
@@ -422,7 +424,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
     <span>Riwayat</span>
   </a>
-  <a href="javascript:void(0)" class="tabbar-item" style="color:var(--accent-red);" onclick="sessionStorage.removeItem('sibar_demo_session')spaGo(\'login\')">
+  <a href="javascript:void(0)" class="tabbar-item" style="color:var(--accent-red);" onclick="sessionStorage.removeItem('sibar_demo_session');spaGo(\'login\')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     <span>Keluar</span>
   </a>
@@ -635,5 +637,6 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 </script>
+<script>if (window.self !== window.top) document.documentElement.classList.add("spa-child");</script>
 </body>
 </html>

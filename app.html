@@ -55,11 +55,172 @@
 
     /* Splash login (halaman publik) */
     body.public-mode #frameWrap { display: block; }
+
+    /* ===== SIDEBAR PERMANEN (SPA SHELL) ===== */
+    #spaSidebar {
+      position: fixed; left: 0; top: 0; bottom: 0;
+      width: 240px;
+      background: #ffffff;
+      border-right: 1px solid var(--border-subtle);
+      display: none; /* hidden saat login */
+      flex-direction: column;
+      z-index: 100;
+    }
+    body.authenticated #spaSidebar { display: flex; }
+
+    .spa-brand {
+      display: flex; align-items: center; gap: 10px;
+      padding: 18px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .spa-brand .brand-logo {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(135deg, #0071e3, #42a5f5);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .spa-brand h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+    .spa-brand p { font-size: 11px; color: var(--text-secondary); }
+
+    .spa-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+    .spa-nav-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--text-secondary);
+      padding: 10px 10px 6px;
+    }
+    .spa-nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; margin-bottom: 2px;
+      border-radius: 9px;
+      font-size: 13.5px; font-weight: 500;
+      color: var(--text-primary);
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      min-height: 44px;
+    }
+    .spa-nav-item:hover { background: rgba(0, 113, 227, 0.06); }
+    .spa-nav-item.active { background: var(--accent-blue); color: #fff; }
+    .spa-nav-item svg { width: 17px; height: 17px; stroke-width: 2; flex-shrink: 0; }
+
+    .spa-footer {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .spa-footer .avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, #0071e3, #42a5f5);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600; flex-shrink: 0;
+    }
+    .spa-footer .user-name { font-size: 13px; font-weight: 600; }
+    .spa-footer .role-badge {
+      display: inline-block; font-size: 9px; font-weight: 700;
+      padding: 2px 7px; border-radius: 5px;
+      background: rgba(0, 113, 227, 0.12); color: var(--accent-blue);
+      letter-spacing: 0.04em;
+    }
+    .spa-logout {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; margin: 4px 10px 12px;
+      border-radius: 9px;
+      font-size: 13.5px; font-weight: 500;
+      color: #d70015;
+      cursor: pointer;
+      min-height: 44px;
+      transition: background 0.15s ease;
+    }
+    .spa-logout:hover { background: rgba(215, 0, 21, 0.08); }
+    .spa-logout svg { width: 17px; height: 17px; stroke-width: 2; }
+
+    /* Konten offset karena sidebar fixed */
+    body.authenticated #frameWrap { margin-left: 240px; }
+
+    /* Mobile: sidebar jadi bottom tab bar */
+    @media (max-width: 768px) {
+      #spaSidebar {
+        top: auto; bottom: 0; left: 0; right: 0;
+        width: 100%; height: auto;
+        flex-direction: row;
+        border-right: none;
+        border-top: 1px solid var(--border-subtle);
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      .spa-brand, .spa-nav-label, .spa-footer { display: none; }
+      .spa-nav {
+        flex: 1; display: flex; padding: 6px 4px;
+        overflow-x: auto; overflow-y: visible;
+      }
+      .spa-nav-item {
+        flex: 1; flex-direction: column; gap: 3px;
+        font-size: 10px; padding: 6px 4px; min-height: 50px;
+        justify-content: center;
+        white-space: nowrap;
+      }
+      .spa-nav-item svg { width: 20px; height: 20px; }
+      .spa-logout { margin: 6px; padding: 8px; min-height: 50px; align-items: center; }
+      body.authenticated #frameWrap { margin-left: 0; margin-bottom: 62px; }
+    }
+
+    /* Sembunyikan sidebar lama di dalam iframe (halaman dimuat standalone) */
+    body.spa-child .sidebar { display: none !important; }
+    body.spa-child .app-container { display: block !important; }
   </style>
 </head>
 <body>
 
 <div id="appShell">
+  <!-- SIDEBAR PERMANEN -->
+  <aside id="spaSidebar">
+    <div class="spa-brand">
+      <div class="brand-logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <div>
+        <h1>SIBAR</h1>
+        <p>Portal Iuran Warga</p>
+      </div>
+    </div>
+
+    <nav class="spa-nav" id="spaNav">
+      <div class="spa-nav-label">Menu</div>
+      <a class="spa-nav-item" data-route="dashboard" onclick="SIBAR_SPA.navigate('dashboard')" id="spaNavDashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Beranda
+      </a>
+      <div class="spa-nav-label">Monitoring</div>
+      <a class="spa-nav-item" data-route="monitoring" onclick="SIBAR_SPA.navigate('monitoring')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        Peta Rumah
+      </a>
+      <a class="spa-nav-item" data-route="calendar" onclick="SIBAR_SPA.navigate('calendar')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+        Kalender &amp; Rekap
+      </a>
+      <a class="spa-nav-item" data-route="users" onclick="SIBAR_SPA.navigate('users')" id="spaNavUsers">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Kelola Akun
+      </a>
+    </nav>
+
+    <div class="spa-footer" id="spaFooter">
+      <div class="avatar" id="spaAvatar">AD</div>
+      <div>
+        <div class="user-name" id="spaUserName">Admin</div>
+        <span class="role-badge" id="spaRoleBadge">SUPER ADMIN</span>
+      </div>
+    </div>
+
+    <div class="spa-logout" onclick="SIBAR_SPA.logout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Keluar
+    </div>
+  </aside>
+
   <div id="frameWrap">
     <!-- Loading indicator per-frame -->
     <div class="frame-loading" id="frameLoading">
@@ -108,6 +269,14 @@ function routeTo(route) {
   if (route === currentRoute) return;
   currentRoute = route;
 
+  // Authenticated state: sidebar muncul saat bukan login
+  if (route === 'login') {
+    document.body.classList.remove('authenticated');
+  } else {
+    document.body.classList.add('authenticated');
+    syncSidebar(route);
+  }
+
   // Tampilkan frame target, sembunyikan lainnya (keep-alive: tidak direload)
   ROUTES.forEach(r => {
     const frame = document.getElementById('frame-' + r);
@@ -123,6 +292,44 @@ function routeTo(route) {
       frame.classList.remove('active');
     }
   });
+}
+
+/* ===== Sidebar sync ===== */
+const ROLE_LABELS = {
+  super_admin: ['SUPER ADMIN', 'AD'],
+  satpam_siang: ['SATPAM SIANG', 'SS'],
+  satpam_malam: ['SATPAM MALAM', 'SM'],
+  sampah: ['PETUGAS SAMPAH', 'PS'],
+  warga: ['WARGA', 'W']
+};
+
+function syncSidebar(route) {
+  // Active nav item
+  document.querySelectorAll('.spa-nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.route === route);
+  });
+
+  // User info dari session
+  try {
+    const session = JSON.parse(sessionStorage.getItem('sibar_demo_session') || 'null');
+    if (session) {
+      const roleInfo = ROLE_LABELS[session.role] || ['PENGGUNA', '?'];
+      const nameEl = document.getElementById('spaUserName');
+      const badgeEl = document.getElementById('spaRoleBadge');
+      const avatarEl = document.getElementById('spaAvatar');
+      if (nameEl) nameEl.textContent = session.name || 'Pengguna';
+      if (badgeEl) badgeEl.textContent = roleInfo[0];
+      if (avatarEl) avatarEl.textContent = roleInfo[1];
+
+      // Role-based nav: warga tidak melihat Kelola Akun; admin/petugas tidak melihat Beranda
+      const usersNav = document.getElementById('spaNavUsers');
+      if (usersNav) usersNav.style.display = (session.role === 'warga') ? 'none' : '';
+      const dashNav = document.getElementById('spaNavDashboard');
+      if (dashNav) dashNav.style.display = (session.role === 'warga') ? '' : 'none';
+      const monLabel = document.querySelector('.spa-nav-label');
+      if (monLabel) monLabel.style.display = (session.role === 'warga') ? 'none' : '';
+    }
+  } catch (e) {}
 }
 
 function showLoading() { loadingEl.classList.remove('hidden'); }
@@ -157,6 +364,20 @@ window.SIBAR_SPA = {
     if (frame) {
       frame.src = frame.dataset.src + '?t=' + Date.now();
     }
+  },
+  // Logout dari shell: hapus session, refresh semua frame ke kondisi awal, kembali ke login
+  logout: () => {
+    try {
+      sessionStorage.removeItem('sibar_demo_session');
+      sessionStorage.removeItem('sibar_demo_session_user');
+    } catch (e) {}
+    document.body.classList.remove('authenticated');
+    // Reload semua frame agar state dalam halaman direset
+    ROUTES.forEach(r => {
+      const frame = document.getElementById('frame-' + r);
+      if (frame) frame.src = frame.dataset.src + '?t=' + Date.now();
+    });
+    navigateTo('login', true);
   },
   currentRoute: () => currentRoute
 };

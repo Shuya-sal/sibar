@@ -248,6 +248,8 @@
     .tabbar-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--text-secondary); text-decoration: none; font-size: 10px; font-weight: 500; }
     .tabbar-item.active { color: var(--accent-blue); font-weight: 600; }
     .tabbar-item svg { width: 20px; height: 20px; stroke-width: 2; }
+      html.spa-child .sidebar, html.spa-child .top-header .btn-header, html.spa-child .ios-bottom-tabbar { display: none !important; }
+    html.spa-child .app-container { display: block !important; }
   </style>
 </head>
 <body>
@@ -269,7 +271,7 @@
       <div class="nav-label">Pos yang Dipantau</div>
       <div id="scopeMenu"></div>
       <div class="nav-label">Akun</div>
-      <a href="javascript:void(0)" class="nav-item logout" onclick="sessionStorage.removeItem('sibar_demo_session')spaGo(\'login\')">⏻ Keluar (Logout)</a>
+      <a href="javascript:void(0)" class="nav-item logout" onclick="sessionStorage.removeItem('sibar_demo_session');spaGo(\'login\')">⏻ Keluar (Logout)</a>
     </nav>
     <div class="sidebar-footer">
       <div class="avatar" id="avatarEl">—</div>
@@ -437,7 +439,7 @@
       `;
     }
     tabHtml += `
-      <a href="javascript:void(0)" class="tabbar-item" style="color:var(--accent-red);" onclick="sessionStorage.removeItem('sibar_demo_session')spaGo(\'login\')">
+      <a href="javascript:void(0)" class="tabbar-item" style="color:var(--accent-red);" onclick="sessionStorage.removeItem('sibar_demo_session');spaGo(\'login\')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span>Keluar</span>
       </a>
@@ -670,5 +672,6 @@
     }
   }
 </script>
+<script>if (window.self !== window.top) document.documentElement.classList.add("spa-child");</script>
 </body>
 </html>
